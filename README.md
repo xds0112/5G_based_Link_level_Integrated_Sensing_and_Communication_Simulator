@@ -9,7 +9,8 @@ Beijing University of Posts and Telecommunications,
 Beijing, PR China.
 
 
-## MATLAB toolboxes required: 
+## MATLAB version and toolboxes required: 
+MATLAB R2022b or above,
 5G Toolbox, Phased Array Toolbox, Wireless Communication Toolbox.
 
 
