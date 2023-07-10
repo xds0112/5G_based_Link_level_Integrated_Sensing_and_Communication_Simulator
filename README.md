@@ -14,12 +14,12 @@ MATLAB R2022b or above,
 5G Toolbox, Phased Array Toolbox, Wireless Communication Toolbox.
 
 
-## Features
-Interface with the Vienna 5G system-level simulator
-Scenario generation
-Main simulator
-Communication simulation functions
-Sensing simulation functions
+## Main Features
+Interface with the Vienna 5G system-level simulator (closed-source),
+Scenario generation,
+Main simulator,
+Communication simulation functions,
+Sensing simulation functions.
 
 ## Getting Started
 Run 'scenarioLinkLevel.m' to launch the downlink-only ISAC mode or the run 'scenarioSystemLevel.m' to launch the TDD-based ISAC mode.
