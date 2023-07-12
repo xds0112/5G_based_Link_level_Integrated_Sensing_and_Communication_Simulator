@@ -1,4 +1,4 @@
-function estResults = hRadar3DFFT(radarEstParams, cfar, rxGrid, txGrid, txArray)
+function estResults = hRadar2DFFT(radarEstParams, cfar, rxGrid, txGrid)
 %%3D-FFT Algorithm for Range, Velocity and Angle Estimation.
 %
 % Input parameters:
@@ -26,13 +26,9 @@ function estResults = hRadar3DFFT(radarEstParams, cfar, rxGrid, txGrid, txArray)
 %
 % Author: D.S Xue, Key Laboratory of Universal Wireless Communications,
 % Ministry of Education, BUPT.
-%
-% See also: Yang, B, et.al, "Urban Traffic Imaging Using Millimeter-Wave
-% Radar", Remote Sensing, 14, 5416, 2022
-
 
     %% Input Parameters
-    nAnts   = size(rxGrid,3);
+    [nSc,nSym,nAnts] = size(rxGrid);
     nIFFT   = radarEstParams.nIFFT;
     nFFT    = radarEstParams.nFFT;
     nAntFFT = radarEstParams.antFFT;
@@ -56,7 +52,6 @@ function estResults = hRadar3DFFT(radarEstParams, cfar, rxGrid, txGrid, txArray)
     estResults        = struct;
     estResults.rngEst = cell(nAnts,1);
     estResults.velEst = cell(nAnts,1);
-    estResults.aziEst = [];
 
     % Angular data extracted from RDM per antenna array element
     angleData = NaN;
@@ -104,23 +99,10 @@ function estResults = hRadar3DFFT(radarEstParams, cfar, rxGrid, txGrid, txArray)
 
     for j = 1:nDetecions
 
-        % Mean range and doppler estimation values
+        % Mean range and Doppler estimation values
         estResults(j).rngEst = mean(cat(2,estResults(j).rngEst{:}),2);
         estResults(j).velEst = mean(cat(2,estResults(j).velEst{:}),2);
     
-        if isa(txArray,'phased.NRRectangularPanelArray') % UPA model is not supported yet
-    
-            disp('3D-FFT algorithm is not supported for UPA model')
-            return
-    
-        else % ULA
-    
-            aryFFT = fftshift(fft(angleData(:,j),nAntFFT),1);  % [nAntFFT x nAntFFT]
-            [~,aIdx] = max(abs(aryFFT));
-            estResults(i).aziEst = asind((aIdx-nAntFFT/2-1)*radarEstParams.aziRes);
-    
-        end
-
     end
 
 
@@ -128,14 +110,13 @@ function estResults = hRadar3DFFT(radarEstParams, cfar, rxGrid, txGrid, txArray)
     % plot 2D-RDM (1st Rx antenna array element)
     plotRDM(1)
 
-    % plot 3D-FFT spectra
+    % plot 2D-FFT spectra
     plot3DFFTSpectra(1,1,1)
 
     %% Local functions
     function [rngWin,dopWin] = selectWindow(winType)
         % Windows for sidelobe suppression: 'hamming, hann, blackman, 
         % kaiser, taylorwin, chebwin, barthannwin, gausswin, tukeywin'
-        [nSc,nSym,~] = size(channelInfo);
         switch winType
             case 'hamming'      % Hamming window
                 rngWin = repmat(hamming(nSc,3),[1 nSym]);
@@ -186,26 +167,14 @@ function estResults = hRadar3DFFT(radarEstParams, cfar, rxGrid, txGrid, txArray)
 
     function plot3DFFTSpectra(fastTimeIdx,slowTimeIdx,aryIdx)
     % Plot 3D-FFT spectra (in dB)  
-        figure('Name','2D Estimation Results')
+        figure('Name','2D FFT Results')
      
-        t = tiledlayout(3,1,'TileSpacing','compact');
-        title(t,'3D-FFT Estimation')
+        t = tiledlayout(2,1,'TileSpacing','compact');
+        title(t,'2D-FFT Estimation')
         ylabel(t,'FFT Spectra (dB)')
 
-        % plot angualr spectrum
-        nexttile(1)
-        aziGrid    = asind((-nAntFFT/2:nAntFFT/2-1)*radarEstParams.aziRes);
-        aziFFT     = sum(abs(aryFFT),2);
-        aziFFTNorm = aziFFT./max(aziFFT);
-        aziFFTdB   = mag2db(aziFFTNorm);
-        plot(aziGrid,aziFFTdB,'LineWidth',1);      
-        title('DoA Estimation')
-        xlabel('Azimuth (°)')
-        xlim([-90 90])
-        grid on
-
         % plot range spectrum 
-        nexttile(2)
+        nexttile(1)
         rngIFFT     = abs(ifftshift(rngIFFT(:,slowTimeIdx,aryIdx)));
         rngIFFTNorm = rngIFFT./max(rngIFFT);
         rngIFFTdB   = mag2db(rngIFFTNorm);
@@ -215,8 +184,8 @@ function estResults = hRadar3DFFT(radarEstParams, cfar, rxGrid, txGrid, txArray)
         xlim([0 500])
         grid on
 
-        % plot doppler/velocity spectrum 
-        nexttile(3)    
+        % plot Doppler/velocity spectrum 
+        nexttile(2)    
         % DFT per rows, [nSc x nFFT x nAnts]
         velFFT     = abs(fftshift(fft(chlInfoWindowed(fastTimeIdx,:,aryIdx),nFFT,2)./sqrt(nFFT)));
         velFFTNorm = velFFT./max(velFFT);
