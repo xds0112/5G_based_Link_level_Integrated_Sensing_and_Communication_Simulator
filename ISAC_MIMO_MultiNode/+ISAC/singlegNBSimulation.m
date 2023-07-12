@@ -75,7 +75,7 @@ function [gNBEstResults,gNBEstRMSE,gNBComResults] = singlegNBSimulation(gNB,algP
                 rdrRxGrid = sensing.activeSensing(rdrTxGrid,carrier,waveInfo,simLocal,rdrEstParams);
                 % Radar parameter estimation algorithm
                 if strcmp(simLocal.estAlgorithm, 'FFT')
-                    gNBEstResults = sensing.hRadar3DFFT(rdrEstParams,cfar,rdrRxGrid,rdrTxGrid,simLocal.txArray,wtx);
+                    gNBEstResults = sensing.hRadar2DFFT(rdrEstParams,cfar,rdrRxGrid,rdrTxGrid,simLocal.txArray,wtx);
                 elseif strcmp(simLocal.estAlgorithm, 'MUSIC')
                     gNBEstResults = sensing.hRadarMUSIC(rdrEstParams,rdrRxGrid,rdrTxGrid,simLocal);
                 end
