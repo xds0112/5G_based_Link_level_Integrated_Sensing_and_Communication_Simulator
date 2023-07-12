@@ -77,7 +77,7 @@ rdrTxGrid = dlTransmit(numFrames,carrier,pdsch,pdschExt,gNBParams.NTxAnts,newWtx
 rdrEstParams        = sensing.hRadarParams(carrier,waveInfo,gNBParams);
 cfar                = sensing.hRadarCFAR(rdrEstParams);
 rdrRxGrid           = sensing.activeSensing(rdrTxGrid,carrier,waveInfo,gNBParams,rdrEstParams);
-gNBEstResults.FFT   = sensing.hRadar3DFFT(rdrEstParams,cfar,rdrRxGrid,rdrTxGrid,gNBParams.txArray,pdschExt.W);
+gNBEstResults.FFT   = sensing.hRadar2DFFT(rdrEstParams,cfar,rdrRxGrid,rdrTxGrid,gNBParams.txArray,pdschExt.W);
 gNBEstResults.MUSIC = sensing.hRadarMUSIC(rdrEstParams,rdrRxGrid,rdrTxGrid,gNBParams);
 
 %% Local Function
