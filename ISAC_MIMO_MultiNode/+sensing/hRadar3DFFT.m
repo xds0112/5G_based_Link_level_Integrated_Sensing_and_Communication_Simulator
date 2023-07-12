@@ -1,4 +1,4 @@
-function estResults = hRadar3DFFT(radarEstParams, cfar, rxGrid, txGrid, txArray, wtx)
+function estResults = hRadar3DFFT(radarEstParams, cfar, rxGrid, txGrid, txArray)
 %%3D-FFT Algorithm for Range, Velocity and Angle Estimation.
 %
 % Input parameters:
@@ -18,7 +18,6 @@ function estResults = hRadar3DFFT(radarEstParams, cfar, rxGrid, txGrid, txArray,
 %
 % txArray: phased array System object™ or a NR Rectangular Panel Array (URA) System object™
 %
-% wtx: precoding weights of Tx
 %
 % Output parameters: 
 %
@@ -27,6 +26,10 @@ function estResults = hRadar3DFFT(radarEstParams, cfar, rxGrid, txGrid, txArray,
 %
 % Author: D.S Xue, Key Laboratory of Universal Wireless Communications,
 % Ministry of Education, BUPT.
+%
+% See also: Yang, B, et.al, "Urban Traffic Imaging Using Millimeter-Wave
+% Radar", Remote Sensing, 14, 5416, 2022
+
 
     %% Input Parameters
     nAnts   = size(rxGrid,3);
@@ -48,12 +51,16 @@ function estResults = hRadar3DFFT(radarEstParams, cfar, rxGrid, txGrid, txArray,
     %% Simulation params initialization
     % 3D-FFT parameters
     detections  = cell(nAnts,1);
-    steeringVec = NaN;
 
     % Estimated results
     estResults        = struct;
     estResults.rngEst = cell(nAnts,1);
     estResults.velEst = cell(nAnts,1);
+    estResults.aziEst = [];
+
+    % Angular data extracted from RDM per antenna array element
+    angleData = NaN;
+
 
     %% 3D-FFT Algorithm
     % Element-wise multiplication
@@ -72,9 +79,11 @@ function estResults = hRadar3DFFT(radarEstParams, cfar, rxGrid, txGrid, txArray,
     for r = 1:nAnts
         % CFAR detection
         detections{r} = cfarDetector(abs(rdm(:,:,r).^2),CUTIdx);
+        nDetecions = size(detections{r},2);
 
         % Range and velocity estimation
-        for i = 1:size(detections{r},2) 
+        for i = 1:nDetecions
+            
             if ~isempty(detections{r})
 
                 % Detection indices
@@ -85,69 +94,35 @@ function estResults = hRadar3DFFT(radarEstParams, cfar, rxGrid, txGrid, txArray,
                 estResults(i).rngEst{r} = rngIdx.*radarEstParams.rRes;
                 estResults(i).velEst{r} = velIdx.*radarEstParams.vRes;
 
-                % Angle steering vector, [nAnts x nTargets]
-                % Remove the effects of Tx precoding weights
-                steeringVec(r,i) = rdm(detections{r}(1,i)-1,detections{r}(2,i)-1,r).*wtx(end,r);
+                % Angle steering info, [nAnts x nDetecions]
+                angleData(r,i) = rdm(rngIdx,velIdx+nFFT/2,r);
 
-             end
+            end
+
          end
     end
 
-    % Mean estimation values of all antenna array elements
-    ntgtDet = length(estResults); % Number of targets detected  
-    for j = 1:ntgtDet
+    for j = 1:nDetecions
+
+        % Mean range and doppler estimation values
         estResults(j).rngEst = mean(cat(2,estResults(j).rngEst{:}),2);
         estResults(j).velEst = mean(cat(2,estResults(j).velEst{:}),2);
+    
+        if isa(txArray,'phased.NRRectangularPanelArray') % UPA model is not supported yet
+    
+            disp('3D-FFT algorithm is not supported for UPA model')
+            return
+    
+        else % ULA
+    
+            aryFFT = fftshift(fft(angleData(:,j),nAntFFT),1);  % [nAntFFT x nAntFFT]
+            [~,aIdx] = max(abs(aryFFT));
+            estResults(i).aziEst = asind((aIdx-nAntFFT/2-1)*radarEstParams.aziRes);
+    
+        end
+
     end
 
-    % Angle estimation
-    [aziEst,eleEst] = deal(zeros(1,ntgtDet)); % Est values initialization
-
-    if isa(txArray,'phased.NRRectangularPanelArray') % UPA
-
-        for k = 1:ntgtDet
-            nAryZ  = txArray.Size(1);     % Z Axis antenna array
-            nAryY  = txArray.Size(2)*2;   % Y Axis antenna array
-            aryMat = reshape(steeringVec(:,k),nAryZ,nAryY);
-        
-            aryZFFT   = fftshift(fft(aryMat,nAntFFT,1));                 % [nAntFFT x nAryY]
-            [~,eIdx]  = max(abs(aryZFFT),[],1);                          % [1 x nAryY]
-            eEst      = asind((eIdx-nAntFFT/2-1)*radarEstParams.eleRes); % [1 x nAryY]
-            eleEst(k) = mean(eEst);
-        
-            aryYIFFT  = ifftshift(ifft(aryMat,nAntFFT,2));                               % [nAryZ x nAntFFT] 
-            [~,aIdx]  = max(abs(aryYIFFT),[],2);                                         % [nAryZ x 1]
-            aEst      = asind((aIdx-nAntFFT/2-1)*radarEstParams.aziRes/cosd(eleEst(k))); % [nAryZ x 1]     
-            aziEst(k) = mean(aEst);
-
-            % Assignment
-            estResults(k).eleEst = eleEst(k);
-            estResults(k).aziEst = aziEst(k);
-        end
-       
-        % Mark complex values with NaN
-        cpxIdx = aziEst ~= real(aziEst);
-        [estResults(cpxIdx).rngEst,estResults(cpxIdx).velEst,...
-            estResults(cpxIdx).eleEst,estResults(cpxIdx).aziEst] = deal(NaN);
-
-    else % ULA
-
-        aryFFT = fftshift(fft(steeringVec,nAntFFT),1);  % [nAntFFT x nTargets]
-
-        for k = 1:ntgtDet
-            [~,aIdx]  = max(abs(aryFFT(:,k)));
-            aziEst(k) = asind((aIdx-nAntFFT/2-1)*radarEstParams.aziRes);
- 
-            % Assignment
-            estResults(k).aziEst = aziEst(k);
-        end
-    
-        % Mark complex values with NaN
-        cpxIdx = aziEst ~= real(aziEst);
-        [estResults(cpxIdx).rngEst,estResults(cpxIdx).velEst,...
-            estResults(cpxIdx).aziEst] = deal(NaN);
-
-    end 
 
     %% Plot Results
     % plot 2D-RDM (1st Rx antenna array element)
@@ -217,10 +192,10 @@ function estResults = hRadar3DFFT(radarEstParams, cfar, rxGrid, txGrid, txArray,
         title(t,'3D-FFT Estimation')
         ylabel(t,'FFT Spectra (dB)')
 
-        % plot angle estimation 
+        % plot angualr spectrum
         nexttile(1)
         aziGrid    = asind((-nAntFFT/2:nAntFFT/2-1)*radarEstParams.aziRes);
-        aziFFT     = abs(sum(aryFFT,2));
+        aziFFT     = sum(abs(aryFFT),2);
         aziFFTNorm = aziFFT./max(aziFFT);
         aziFFTdB   = mag2db(aziFFTNorm);
         plot(aziGrid,aziFFTdB,'LineWidth',1);      
@@ -229,7 +204,7 @@ function estResults = hRadar3DFFT(radarEstParams, cfar, rxGrid, txGrid, txArray,
         xlim([-90 90])
         grid on
 
-        % plot range estimation 
+        % plot range spectrum 
         nexttile(2)
         rngIFFT     = abs(ifftshift(rngIFFT(:,slowTimeIdx,aryIdx)));
         rngIFFTNorm = rngIFFT./max(rngIFFT);
@@ -240,7 +215,7 @@ function estResults = hRadar3DFFT(radarEstParams, cfar, rxGrid, txGrid, txArray,
         xlim([0 500])
         grid on
 
-        % plot doppler/velocity estimation 
+        % plot doppler/velocity spectrum 
         nexttile(3)    
         % DFT per rows, [nSc x nFFT x nAnts]
         velFFT     = abs(fftshift(fft(chlInfoWindowed(fastTimeIdx,:,aryIdx),nFFT,2)./sqrt(nFFT)));
