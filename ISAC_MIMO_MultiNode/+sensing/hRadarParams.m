@@ -78,22 +78,9 @@ function radarEstParams = hRadarParams(carrier, waveInfo, simParams)
     steeringVec = cell(1,nTargets);        % Steering/response vector [1 x nTargets]
     
     if isa(txArray,'phased.NRRectangularPanelArray')      % UPA
-        rxAryZSpacing = txArray.Spacing(1);               % Z Axis Antenna array element spacing
-        rxAryYSpacing = txArray.Spacing(2);               % Y Axis Antenna array element spacing
-        nRxAryZ       = txArray.Size(1);                  % Z Axis antenna array
-        nRxAryY       = txArray.Size(2)*2;                % Y Axis antenna array
-        rxAntAryZ     = ((0:1:nRxAryZ-1)*rxAryZSpacing)'; % Z Axis antenna array element [nRxAryZ x 1]
-        rxAntAryY     = ((0:1:nRxAryY-1)*rxAryYSpacing)'; % Y Axis antenna array element [nRxAryY x 1]
-        eleRes        = lambda/(rxAryZSpacing*antFFT);    % Elevation resolution
-        aziRes        = lambda/(rxAryYSpacing*antFFT);    % Azimuth resolution
-        [rxAngleZ,rxAngleY,rxAngleMat] = deal(cell(1,nTargets)); % [1 x nTargets]
-        
-        for t = 1:nTargets
-            rxAngleZ{t}    = exp(2j*pi*rxAntAryZ*sind(ele(t))/lambda);              % Array azimuth steering/response vector [nRxAryZ x 1]
-            rxAngleY{t}    = exp(2j*pi*rxAntAryY*sind(azi(t))*cosd(ele(t))/lambda); % Array elevation steering/response vector [nRxAryY x 1]
-            rxAngleMat{t}  = rxAngleZ{t}*(rxAngleY{t}');                            % Array angle steering/response matrix [nRxAryZ x nRxAryY]
-            steeringVec{t} = reshape(rxAngleMat{t},[],1);                           % Array angle steering/response vector [nRxAnts x 1]
-        end
+
+        disp('UPA model is not supported for radar sensing')
+        return
     
     else % ULA
         rxArySpacing = txArray.ElementSpacing;          % Antenna array element spacing
