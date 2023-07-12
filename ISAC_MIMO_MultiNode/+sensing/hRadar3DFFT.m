@@ -94,7 +94,7 @@ function estResults = hRadar3DFFT(radarEstParams, cfar, rxGrid, txGrid, txArray)
                 estResults(i).rngEst{r} = rngIdx.*radarEstParams.rRes;
                 estResults(i).velEst{r} = velIdx.*radarEstParams.vRes;
 
-                % Angle steering info, [nAnts x nDetecions]
+                % Angle steering vector, [nAnts x nDetecions]
                 angleData(r,i) = rdm(rngIdx,velIdx+nFFT/2,r);
 
             end
