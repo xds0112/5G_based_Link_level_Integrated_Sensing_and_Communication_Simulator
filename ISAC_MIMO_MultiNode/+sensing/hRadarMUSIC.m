@@ -1,7 +1,26 @@
-function estResults = hRadarMUSIC(rdrEstParams,rxGrid,txGrid,gNBParams)
+function estResults = hRadarMUSIC(rdrEstParams, rxGrid, txGrid, gNBParams)
 %HRADARMUSIC 
 %  Multiple signal classification (MUSIC) algorithm for DoA, range 
 % and velocity estimation.
+%
+% Input parameters:
+%
+% radarEstParams: structure containing radar system parameters 
+% such as the number of IFFT/FFT points, range and velocity resolutions, and angle FFT size.
+%
+% rxGrid: M-by-N-by-P matrix representing the received signal 
+% at P antenna elements from N samples over M chirp sequences.
+%
+% txGrid: M-by-N-by-P matrix representing the transmitted signal 
+% at P antenna elements from N samples over M chirp sequences.
+%
+% gNBParams: structure containing gNB system parameters 
+%
+%
+% Output parameters: 
+%
+% estResults containing the estimated range, velocity, and angle
+% for each target detected. The function also includes functions to plot results.
 %
 % Author: D.S Xue, Key Laboratory of Universal Wireless Communications,
 % Ministry of Education, BUPT.
@@ -34,7 +53,7 @@ function estResults = hRadarMUSIC(rdrEstParams,rxGrid,txGrid,gNBParams)
     estResults = struct;
 
     % Antenna array type
-    if isa(gNBParams.txArray,'phased.NRRectangularPanelArray')
+    if isa(gNBParams.txArray,'phased.NRRectangularPanelArray') % UPA model is not supported yet
         disp('MUSIC algorithm is not supported for UPA model')
         return
     end
