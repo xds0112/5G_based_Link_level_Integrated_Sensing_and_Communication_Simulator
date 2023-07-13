@@ -87,7 +87,7 @@ function [bsComResults, bsEstResults, bsEstRMSE] = singleBSSimulation(simulation
                     
                 elseif strcmp(simLocal.estAlgorithm, 'MUSIC')
 
-                    bsEstResults = sensing.estAlgorithms.MUSIC(rdrEstParams,rdrRxGrid,rdrTxGrid,simLocal);
+                    bsEstResults = sensing.estAlgorithms.MUSIC(rdrEstParams,simLocal,rdrRxGrid,rdrTxGrid);
 
                 end
 
