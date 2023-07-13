@@ -30,7 +30,11 @@ http://dl.acm.org/doi/10.1145/3597065.3597450
 
 
 ## License
-None at present.
+Copyright (C) 2023 Beijing University of Posts and Telecommunications
+All rights reserved.
+
+System-level ISAC Simulator
+Author: Dongsheng Xue
 
 
 ## Contact
