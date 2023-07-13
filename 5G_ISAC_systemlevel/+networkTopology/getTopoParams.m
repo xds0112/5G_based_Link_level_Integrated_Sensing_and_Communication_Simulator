@@ -1,5 +1,5 @@
 function topParams = getTopoParams(bsParams)
-%UNTITLED 
+%GETTOPOPARAMS
 %   Calculate the position of the target relative to the base station
 
         for ibs = 1:numel(bsParams)
