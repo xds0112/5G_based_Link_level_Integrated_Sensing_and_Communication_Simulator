@@ -26,7 +26,7 @@ To simulate link-level ISAC, you can run 'scenarioLL' in the scenario folder. To
 
 
 ## Documentation
-http://dl.acm.org/doi/10.1145/3597065.3597450
+None at present.
 
 
 ## License
