@@ -22,8 +22,7 @@ Communication simulation functions,
 Sensing simulation functions.
 
 ## Getting Started
-Run 'scenarioLinkLevel.m' to launch the downlink-only ISAC mode 
-or the run 'scenarioSystemLevel.m' to launch the TDD-based ISAC mode.
+To simulate link-level ISAC, you can run 'scenarioLL' in the scenario folder. To simulate ISAC network, you can run 'scenarioSL' in the same folder.
 
 
 ## Documentation
