@@ -1,4 +1,4 @@
-%% 5G-based System-Level ISAC Simulation
+%% 5G-based System-Level ISAC Simulator
 
 % Incooperates the following parts:
   % Interface with the Vienna 5G system-level simulator.
