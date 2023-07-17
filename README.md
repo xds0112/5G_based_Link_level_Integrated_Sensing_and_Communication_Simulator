@@ -1,4 +1,4 @@
-## SLS-for-Integrated Sensing and Communication
+## 5G-based System-level Integrated Sensing and Communication Simulator
 System Level Simulator for NR-based Integrated Sensing and Communication (ISAC) Network.
 Focuses on the Physical (PHY) layer only.
 
