@@ -1,6 +1,6 @@
-## 5G-based System-level Integrated Sensing and Communication Simulator
-System Level Simulator for NR-based Integrated Sensing and Communication (ISAC) Network.
-Focuses on the Physical (PHY) layer only.
+## 5G-based Link-level Integrated Sensing and Communication Simulator
+Link-level simulator (LLS) to implement NR-based Integrated Sensing and Communication (ISAC) key techniques.
+Focuses on the Physical (PHY) layer resource mapping and radar signal processing procedures only.
 
 ## Members paticipated in this project:
 D.S. Xue, J.C. Wei, Y.G. Li, T.L. Zeng, 
@@ -11,18 +11,17 @@ Beijing, PR China.
 
 ## MATLAB version and toolboxes required: 
 MATLAB R2022b or above,
-5G Toolbox, Phased Array Toolbox, Wireless Communication Toolbox.
+5G Toolbox, Phased Array Toolbox.
 
 
 ## Main Features
-Interface with the Vienna 5G system-level simulator (closed-source),
-Scenario generation,
-Main simulator,
-Communication simulation functions,
-Sensing simulation functions.
+Link-level scenario generation,
+Communication PHY layer resource mapping,
+Sensing propagation channel modeling,
+Sensing detection and estimation
 
 ## Getting Started
-To simulate link-level ISAC, you can run 'scenarioLL' in the scenario folder. To simulate ISAC network, you can run 'scenarioSL' in the same folder.
+To simulate link-level ISAC scenario, you can run 'launchSimulation' in the root directory.
 
 
 ## Documentation
