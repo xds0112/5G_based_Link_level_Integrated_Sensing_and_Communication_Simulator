@@ -35,7 +35,7 @@
     All rights reserved.
 
     System-level ISAC Simulator
-    Author: Dongsheng Xue, et,al.
+    Author: Dongsheng Xue, et.al.
 
 
 ## Contact
