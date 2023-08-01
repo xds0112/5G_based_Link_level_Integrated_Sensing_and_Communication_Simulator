@@ -81,7 +81,7 @@ function estResults = music(rdrEstParams, bsParams, rxGrid, txGrid)
         Pamusic(a) = 1./((aa'*Uan)*(Uan'*aa));
     end
     
-    % Normaliztion
+    % Normalization
     Pamusic     = abs(Pamusic);
     PamusicNorm = Pamusic./max(Pamusic);
     PamusicdB   = mag2db(PamusicNorm);
@@ -125,7 +125,7 @@ function estResults = music(rdrEstParams, bsParams, rxGrid, txGrid)
         Pvmusic(v) = 1./((av'*Uvn)*(Uvn'*av));
     end
     
-    % Normaliztion
+    % Normalization
     Prmusic     = abs(Prmusic);
     PrmusicNorm = Prmusic./max(Prmusic);
     PrmusicdB   = mag2db(PrmusicNorm);
