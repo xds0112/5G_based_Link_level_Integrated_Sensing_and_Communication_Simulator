@@ -29,8 +29,8 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
 
     %% Input Parameters
     [nSc,nSym,nAnts] = size(rxGrid);
-    nIFFT   = radarEstParams.nIFFT;
-    nFFT    = radarEstParams.nFFT;
+    nIFFT = radarEstParams.nIFFT;
+    nFFT  = radarEstParams.nFFT;
 
     % Range and Doppler grid
     rngGrid = ((0:nIFFT-1)*radarEstParams.rRes)';        % [0,nIFFT-1]*rRes
@@ -45,12 +45,12 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
 
     %% Simulation params initialization
     % 3D-FFT parameters
-    detections  = cell(nAnts,1);
+    detections  = cell(nAnts, 1);
 
     % Estimated results
-    estResults        = struct;
-    estResults.rngEst = cell(nAnts,1);
-    estResults.velEst = cell(nAnts,1);
+    estResults = struct;
+    rngEst     = cell(nAnts, 1);
+    velEst     = cell(nAnts, 1);
 
     % Angular data extracted from RDM per antenna array element
     angleData = NaN;
@@ -61,19 +61,19 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     channelInfo = bsxfun(@times, rxGrid, pagectranspose(pagetranspose(txGrid)));  % [nSc x nSym x nAnts]
 
     % Select window
-    [rngWin,dopWin] = selectWindow('kaiser');
+    [rngWin, dopWin] = selectWindow('kaiser');
 
     % Generate windowed RDM
-    chlInfoWindowed = channelInfo.*rngWin;                                       % Apply window to the channel info matrix
-    rngIFFT         = ifftshift(ifft(chlInfoWindowed,nIFFT,1).*sqrt(nIFFT));     % IDFT per columns, [nIFFT x nSym x nAnts]
-    rngIFFTWindowed = rngIFFT.*dopWin;                                           % Apply window to the ranging matrix
-    rdm             = fftshift(fft(rngIFFTWindowed,nFFT,2)./sqrt(nFFT));         % DFT per rows, [nIFFT x nFFT x nAnts]
+    chlInfoWindowed = channelInfo.*rngWin;                                     % Apply window to the channel info matrix
+    rngIFFT         = ifftshift(ifft(chlInfoWindowed, nIFFT, 1).*sqrt(nIFFT)); % IDFT per columns, [nIFFT x nSym x nAnts]
+    rngIFFTWindowed = rngIFFT.*dopWin;                                         % Apply window to the ranging matrix
+    rdm             = fftshift(fft(rngIFFTWindowed, nFFT, 2)./sqrt(nFFT));     % DFT per rows, [nIFFT x nFFT x nAnts]
 
     % Range and velocity estimation
     for r = 1:nAnts
         % CFAR detection
-        detections{r} = cfarDetector(abs(rdm(:,:,r).^2),CUTIdx);
-        nDetecions = size(detections{r},2);
+        detections{r} = cfarDetector(abs(rdm(:,:,r).^2), CUTIdx);
+        nDetecions = size(detections{r}, 2);
 
         % Range and velocity estimation
         for i = 1:nDetecions
@@ -85,32 +85,27 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
                 velIdx = detections{r}(2,i)-nFFT/2-1;
 
                 % Assignment
-                estResults(i).rngEst{r} = rngIdx.*radarEstParams.rRes;
-                estResults(i).velEst{r} = velIdx.*radarEstParams.vRes;
+                rngEst{r} = rngIdx.*radarEstParams.rRes;
+                velEst{r} = velIdx.*radarEstParams.vRes;
 
                 % Angle steering vector, [nAnts x nDetecions]
-                angleData(r,i) = rdm(rngIdx,velIdx+nFFT/2,r);
+                angleData(r,i) = rdm(rngIdx, velIdx+nFFT/2, r);
 
             end
 
+            % Mean range and Doppler estimation values
+            estResults(i).rngEst = mean(cat(2, rngEst{:}), 2);
+            estResults(i).velEst = mean(cat(2, velEst{:}), 2);
+
          end
     end
-
-    for j = 1:nDetecions
-
-        % Mean range and Doppler estimation values
-        estResults(j).rngEst = mean(cat(2,estResults(j).rngEst{:}),2);
-        estResults(j).velEst = mean(cat(2,estResults(j).velEst{:}),2);
-    
-    end
-
 
     %% Plot Results
     % plot 2D-RDM (1st Rx antenna array element)
     plotRDM(1)
 
     % Uncomment to plot 2D-FFT spectra
-    % plotFFTSpectra(1,1,1)
+    plotFFTSpectra(1,1,1)
 
     %% Local functions
     function [rngWin,dopWin] = selectWindow(winType)
