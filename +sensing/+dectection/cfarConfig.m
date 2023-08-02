@@ -44,8 +44,8 @@ function cfar2D = cfarConfig(radarEstParams)
     cfarDetector2D.ThresholdFactor       = 'Auto';              % 'Auto', 'Input port', 'Custom'
     cfarDetector2D.ProbabilityFalseAlarm = radarEstParams.Pfa;  % Only when 'ThresholdFactor' is set to 'Auto'
     cfarDetector2D.OutputFormat          = 'Detection index';   % 'CUT result', 'Detection index'
-    cfarDetector2D.GuardBandSize         = [1 1];               % guardbandSize
-    cfarDetector2D.TrainingBandSize      = [2 4];               % trainingbandSize
+    cfarDetector2D.GuardBandSize         = [4 4];               % guardbandSize
+    cfarDetector2D.TrainingBandSize      = [2 2];               % trainingbandSize
 
     %%
     cfar2D.CUTIdx         = CUTIdx;
