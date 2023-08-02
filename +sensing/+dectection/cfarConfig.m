@@ -23,21 +23,6 @@ function cfar2D = cfarConfig(radarEstParams)
     [columnIdxs,rowIdxs] = meshgrid(dopIdx(1):dopIdx(2),rngIdx(1):rngIdx(2));
     CUTIdx               = [rowIdxs(:) columnIdxs(:)]';        % Cell-under-test index
 
-    % Automatically select guard and training band sizes
-    % When [guardRatio] increases, the width of the guard band also increases, 
-    % reducing false alarm rate but potentially decreasing detector sensitivity.
-    % When [trainingRatio] increases, the width of the training band increases, 
-    % leading to a more accurate estimation of local noise level but potentially decreasing detector sensitivity.
-
-    rngSize = rngIdx(2)-rngIdx(1)+1;
-    velSize = dopIdx(2)-dopIdx(1)+1;
-    rngGuardRatio = 4;           % Ratio of guard band width to target cell width
-    velGuardRatio = 4;           % Ratio of guard band width to target cell width
-    rngTrainingRatio = 1/4;      % Ratio of training band width to target cell width
-    velTrainingRatio = 1/4;      % Ratio of training band width to target cell width
-    guardbandSize    = [ceil(rngSize/rngGuardRatio) ceil(velSize/velGuardRatio)];
-    trainingbandSize = [min(floor(rngSize*rngTrainingRatio),2) min(floor(velSize*velTrainingRatio),1)];
-
     %% 2D-CFAR
     cfarDetector2D                       = phased.CFARDetector2D;
     cfarDetector2D.Method                = 'CA';                % 'CA', 'GOCA', 'SOCA', 'OS'
