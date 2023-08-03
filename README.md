@@ -1,6 +1,6 @@
 ## 5G-based Link-level Integrated Sensing and Communication Simulator
     Link-level simulator (LLS) to implement NR-based Integrated Sensing and Communication (ISAC) key techniques.
-    Focuses on the Physical (PHY) layer resource mapping and radar signal processing procedures only.
+    Focuses on the communication physical (PHY) layer modeling and radar signal processing procedures only.
 
 
 ## Members paticipated in this project:
@@ -16,14 +16,16 @@
 
 
 ## Main Features
-    Link-level scenario generation,
-    Communication PHY layer resource mapping,
+    Link-level scenario generation (full downlink or TDD),
+    Communication PHY layer modeling,
+    Communication downlink and uplink signal processing,
     Sensing propagation channel modeling,
     Sensing detection and estimation
 
 
 ## Getting Started
-    To simulate link-level ISAC scenario, you can run 'launchSimulation' in the root directory.
+    To simulate full downlink ISAC scenario, run 'launchFullDownlinkSimulation' in the root directory,
+    To simulate time division duplex (TDD) ISAC scenario,  run 'launchTimeDivisionDuplexSimulation' in the root directory,
 
 
 ## Documentation
