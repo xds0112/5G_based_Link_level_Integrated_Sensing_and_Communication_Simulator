@@ -4,9 +4,6 @@ classdef gNB < networkElements.networkElementsWithPosition
     
     properties
 
-        % Height of the antenna (m)
-        height = 30
-
         % Power on a fully allocated grid (dBm)
         txPower = 46
 
@@ -57,6 +54,9 @@ classdef gNB < networkElements.networkElementsWithPosition
         % Type, 'Macro', 'Micro', ...
         type
 
+        % Height of the antenna attached (m)
+        height
+
         % Tx array
         txArray
 
@@ -87,7 +87,6 @@ classdef gNB < networkElements.networkElementsWithPosition
             %GNB 
             %  
             obj@networkElements.networkElementsWithPosition()
-            obj.height = obj.position(3);
 
         end
 
@@ -100,6 +99,12 @@ classdef gNB < networkElements.networkElementsWithPosition
             else
                 type = 'Not defined in the 3GPP standards';
             end
+
+        end
+
+        function h = get.height(obj)
+
+            h = obj.position(3);
 
         end
 
