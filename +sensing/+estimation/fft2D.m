@@ -131,7 +131,7 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
                 dopWin = repmat(kaiser(nIFFT, 3),[1 nSym]);
             case 'taylorwin'    % Taylor window
                 rngWin = repmat(taylorwin(nSc, 3),[1 nSym]);
-                dopWin = repmat(taylorwin(nSym, 3),[1 nIFFT]);
+                dopWin = repmat(taylorwin(nIFFT, 3),[1 nSym]);
             case 'chebwin'      % Chebyshev window
                 rngWin = repmat(chebwin(nSc, 3),[1 nSym]);
                 dopWin = repmat(chebwin(nIFFT, 3),[1 nSym]);
