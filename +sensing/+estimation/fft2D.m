@@ -103,6 +103,8 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
          end
     end
 
+    estResults = getUniqueStruct(estResults);
+
     %% Plot Results
     % plot 2D-RDM (1st Rx antenna array element)
     plotRDM(1)
@@ -128,11 +130,11 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
                 rngWin = repmat(kaiser(nSc,3),[1 nSym]);
                 dopWin = repmat(kaiser(nSym,3),[1 nIFFT]).';
             case 'taylorwin'    % Taylor window
-                rngWin = repmat(taylorwin(nSc,5),[1 nSym]);
-                dopWin = repmat(taylorwin(nSym,5),[1 nIFFT]).';
+                rngWin = repmat(taylorwin(nSc,3),[1 nSym]);
+                dopWin = repmat(taylorwin(nSym,3),[1 nIFFT]).';
             case 'chebwin'      % Chebyshev window
-                rngWin = repmat(chebwin(nSc,5),[1 nSym]);
-                dopWin = repmat(chebwin(nSym,5),[1 nIFFT]).';
+                rngWin = repmat(chebwin(nSc,3),[1 nSym]);
+                dopWin = repmat(chebwin(nSym,3),[1 nIFFT]).';
             case 'barthannwin'  % Modified Bartlett-Hann window
                 rngWin = repmat(barthannwin(nSc,3),[1 nSym]);
                 dopWin = repmat(barthannwin(nSym,3),[1 nIFFT]).';
@@ -146,6 +148,14 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
                 rngWin = repmat(hamming(nSc,3),[1 nSym]);
                 dopWin = repmat(hamming(nIFFT,3),[1 nSym]).';
         end
+    end
+
+    function uniqueStruct = getUniqueStruct(myStruct)
+        % Delete duplicated elements in the struct
+
+        [~, uniqueIndices] = unique(struct2table(myStruct), 'stable', 'rows');
+        uniqueStruct = myStruct(uniqueIndices);
+
     end
 
     function filteredData = filterOutliers(data)
