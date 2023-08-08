@@ -8,7 +8,7 @@ ue(1).ID       = 1;
 ue(1).position = [100 100 1.5];  % in meters
 
 ue(2) = networkElements.ue.basicUE();
-ue(2).ID       = 1;
+ue(2).ID       = 2;
 ue(2).position = [200 -50 1.5];  % in meters
 
 ueParams = ue;
