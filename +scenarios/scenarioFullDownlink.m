@@ -30,7 +30,7 @@ function simuParams = scenarioFullDownlink()
     % Attached UEs
     ue = networkElements.ue.basicUE();
     ue.ID       = 1;
-    ue.position = [150 50 1.5];  % in meters
+    ue.position = [100 100 1.5];  % in meters
     ueParams    = ue;
     
     % Attached targets
