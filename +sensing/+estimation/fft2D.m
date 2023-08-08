@@ -118,35 +118,35 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
         % kaiser, taylorwin, chebwin, barthannwin, gausswin, tukeywin'
         switch winType
             case 'hamming'      % Hamming window
-                rngWin = repmat(hamming(nSc, 3),[1 nSym]);
-                dopWin = repmat(hamming(nIFFT, 3),[1 nSym]);
+                rngWin = repmat(hamming(nSc), [1 nSym]);
+                dopWin = repmat(hamming(nIFFT), [1 nSym]);
             case 'hann'         % Hanning window
-                rngWin = repmat(hann(nSc, 3),[1 nSym]);
-                dopWin = repmat(hann(nIFFT, 3),[1 nSym]);
+                rngWin = repmat(hann(nSc), [1 nSym]);
+                dopWin = repmat(hann(nIFFT), [1 nSym]);
             case 'blackman'     % Blackman window
-                rngWin = repmat(blackman(nSc, 3),[1 nSym]);
-                dopWin = repmat(blackman(nIFFT, 3),[1 nSym]);
+                rngWin = repmat(blackman(nSc), [1 nSym]);
+                dopWin = repmat(blackman(nIFFT), [1 nSym]);
             case 'kaiser'       % Kaiser window
-                rngWin = repmat(kaiser(nSc, 3),[1 nSym]);
-                dopWin = repmat(kaiser(nIFFT, 3),[1 nSym]);
+                rngWin = repmat(kaiser(nSc, .5), [1 nSym]);
+                dopWin = repmat(kaiser(nIFFT, .5), [1 nSym]);
             case 'taylorwin'    % Taylor window
-                rngWin = repmat(taylorwin(nSc, 3),[1 nSym]);
-                dopWin = repmat(taylorwin(nIFFT, 3),[1 nSym]);
+                rngWin = repmat(taylorwin(nSc, 4, -30), [1 nSym]);
+                dopWin = repmat(taylorwin(nIFFT, 4, -30), [1 nSym]);
             case 'chebwin'      % Chebyshev window
-                rngWin = repmat(chebwin(nSc, 3),[1 nSym]);
-                dopWin = repmat(chebwin(nIFFT, 3),[1 nSym]);
+                rngWin = repmat(chebwin(nSc, 100), [1 nSym]);
+                dopWin = repmat(chebwin(nIFFT, 100), [1 nSym]);
             case 'barthannwin'  % Modified Bartlett-Hann window
-                rngWin = repmat(barthannwin(nSc, 3),[1 nSym]);
-                dopWin = repmat(barthannwin(nIFFT, 3),[1 nSym]);
+                rngWin = repmat(barthannwin(nSc), [1 nSym]);
+                dopWin = repmat(barthannwin(nIFFT), [1 nSym]);
             case 'gausswin'     % Gaussian window
-                rngWin = repmat(gausswin(nSc, 3),[1 nSym]);
-                dopWin = repmat(gausswin(nIFFT, 3),[1 nSym]);
-            case 'tukeywin'     % tukey window
-                rngWin = repmat(tukeywin(nSc, 3),[1 nSym]);
-                dopWin = repmat(tukeywin(nIFFT, 3),[1 nSym]);
+                rngWin = repmat(gausswin(nSc, 2.5), [1 nSym]);
+                dopWin = repmat(gausswin(nIFFT, 2.5), [1 nSym]);
+            case 'tukeywin'     % tukey (tapered cosine) window
+                rngWin = repmat(tukeywin(nSc, .5), [1 nSym]);
+                dopWin = repmat(tukeywin(nIFFT, .5), [1 nSym]);
             otherwise           % Default to Hamming window
-                rngWin = repmat(hamming(nSc, 3),[1 nSym]);
-                dopWin = repmat(hamming(nIFFT, 3),[1 nSym]);
+                rngWin = repmat(hamming(nSc), [1 nSym]);
+                dopWin = repmat(hamming(nIFFT), [1 nSym]);
         end
     end
 
