@@ -3,7 +3,7 @@
     Focuses on the communication physical (PHY) layer modeling and radar signal processing procedures only.
 
 
-## Members paticipated in this project:
+## Members participated in this project:
     D.S. Xue, J.C. Wei, Y.G. Li, T.L. Zeng,
     Key Laboratory of Universal Wireless Communications, Ministry of Education,
     Beijing University of Posts and Telecommunications,
@@ -24,7 +24,7 @@
 
 
 ## Getting Started
-    To simulate full downlink ISAC scenario, run 'launchFullDownlinkSimulation' in the root directory,
+    To simulate the full downlink ISAC scenario, run 'launchFullDownlinkSimulation' in the root directory,
     To simulate time division duplex (TDD) ISAC scenario,  run 'launchTimeDivisionDuplexSimulation' in the root directory,
 
 
