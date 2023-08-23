@@ -99,6 +99,8 @@ function radarEstParams = radarParams(nSlots, carrier, waveInfo, bsParams, topoP
     end
 
     steeringVec = cat(2,steeringVec{:}); % [nRxAnts x nTargets]
+
+    radarEstParams.scanScale     = 120;  % [-60°, 60°]
     radarEstParams.RxSteeringVec = steeringVec;
 
     %% Restore Targets' Real Position Configuration
