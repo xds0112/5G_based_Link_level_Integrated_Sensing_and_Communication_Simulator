@@ -29,8 +29,8 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
 
     %% Input Parameters
     [nSc, nSym, nAnts] = size(rxGrid);
-    nIFFT              = radarEstParams.nIFFT;
-    nFFT               = radarEstParams.nFFT;
+    nIFFT = radarEstParams.nIFFT;
+    nFFT  = radarEstParams.nFFT;
 
     % Angular grid
     aMax    = radarEstParams.scanScale;
@@ -65,14 +65,19 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     Ra = rxGridReshaped*rxGridReshaped'./(nSc*nSym);    % [nAnts x nAnts]
 
     % Generare beamforming power spectrum
-    Pbf  = zeros(1, aMax+1);
-    for a = 1:aMax+1
+    Pbf = zeros(1, aMax+1);
+    for a = 1:(aMax+1)
         aa     = exp(-2j.*pi.*sind(a-aMax/2-1).*d.*(0:1:nAnts-1)).'; % angle steering vector, [1 x nAnts]
         Pbf(a) = aa'*Ra*aa;
     end
     
+    % Normalization
+    Pbf     = abs(Pbf);
+    PbfNorm = Pbf./max(Pbf);
+    PbfdB   = mag2db(PbfNorm);
+    
     % DoA estimation
-    [~, aIdx] = max(abs(Pbf));
+    [~, aIdx] = findpeaks(PbfdB, 'MinPeakHeight', -5, 'SortStr', 'descend');
     aziEst = aIdx - aMax/2 -1;
 
     % Assignment
@@ -213,9 +218,7 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
 
         % plot DoA spectrum 
         nexttile(1)
-        aziFFTPlot = abs(Pbf);
-        aziFFTNorm = aziFFTPlot./max(aziFFTPlot);
-        aziFFTdB   = mag2db(aziFFTNorm);
+        aziFFTdB = PbfdB;
         plot(aziGrid, aziFFTdB, 'LineWidth', 1);
         title('DoA Estimation (Beamscan)')
         xlabel('DoA (°)')
