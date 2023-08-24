@@ -82,7 +82,7 @@ function estResults = music(rdrEstParams, bsParams, rxGrid, txGrid)
     Uan      = Ua(:,L+1:end);
 
     % Angle spectrum
-    for a = 1:floor((aMax+1)/aGranularity)-1
+    for a = 1:aSteps
         searchAngle = (a-1)*aGranularity-aMax/2;
         aa          = exp(-2j.*pi.*sind(searchAngle).*d.*(0:1:nAnts-1)).';  % angle steering vector
         Pamusic(a)  = 1./((aa'*Uan)*(Uan'*aa));
@@ -122,13 +122,13 @@ function estResults = music(rdrEstParams, bsParams, rxGrid, txGrid)
     Uvn      = Uv(:,L+1:end);
 
     % Range and Doppler spectra
-    for r = 1:floor((rMax+1)/rGranularity)-1
+    for r = 1:rSteps
         searchRange = (r-1)*rGranularity;
         ar          = exp(-2j.*pi.*scs.*2.*searchRange.*(0:1:nSc-1)./c).';  % range steering vector
         Prmusic(r)  = 1./((ar'*Urn)*(Urn'*ar));
     end
 
-    for v = 1:floor((vMax+1)/vGranularity)-1
+    for v = 1:vSteps
         searchVelocity = (v-1)*vGranularity-vMax/2;
         av             = exp(2j.*pi.*T.*2.*searchVelocity.*(0:1:nSym-1)./lambda).';  % velocity steering vector
         Pvmusic(v)     = 1./((av'*Uvn)*(Uvn'*av));
