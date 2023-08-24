@@ -31,23 +31,29 @@ function estResults = music(rdrEstParams, bsParams, rxGrid, txGrid)
 
     %% Parameters
     [nSc, nSym, nAnts] = size(rxGrid);                % OFDM rxGrid
-    scs    = bsParams.scs*1e3;                        % Subcarrier spacing
-    c      = physconst('LightSpeed');                 % Light speed
-    fc     = rdrEstParams.fc;                         % Carrier frequency
-    lambda = c/fc;                                    % Wavelength
-    T      = rdrEstParams.Tsri;                       % Duration time of a whole OFDM symbol
-    d      = bsParams.txArray.ElementSpacing/lambda;  % Antenna array element spacing, normally set to 0.5
+    scs    = bsParams.scs*1e3;                        % subcarrier spacing
+    c      = physconst('LightSpeed');                 % light speed
+    fc     = rdrEstParams.fc;                         % carrier frequency
+    lambda = c/fc;                                    % wavelength
+    T      = rdrEstParams.Tsri;                       % duration time of a whole OFDM symbol
+    d      = bsParams.txArray.ElementSpacing/lambda;  % antenna array element spacing, normally set to 0.5
 
     % MUSIC spectra configuration
-    aMax    = 120;              % in degrees
-    rMax    = 500;              % in meters
-    vMax    = 100;              % in meters per second
-    Pamusic = zeros(1, aMax+1); % Azimuth spectrum
-    Prmusic = zeros(1, rMax+1); % Range spectrum
-    Pvmusic = zeros(1, vMax+1); % Velocity spectrum
-    aziGrid = -aMax/2:aMax/2;   % Azimuth grid
-    rngGrid = 1:rMax+1;         % Range grid
-    velGrid = -vMax/2:vMax/2;   % Velocity grid
+    aMax         = rdrEstParams.scanScale;            % in degrees
+    rMax         = rdrEstParams.cfarEstZone(1,2);     % in meters
+    vMax         = rdrEstParams.cfarEstZone(2,2)*2;   % in meters per second
+    aGranularity = rdrEstParams.scanGranularity;      % angle search granularity, in degrees
+    rGranularity = .5;                                % range search granularity, in meters
+    vGranularity = .5;                                % velocity search granularity, in meters per second
+    aSteps       = floor((aMax+1)/aGranularity);      % azimuth searching steps
+    rSteps       = floor((rMax+1)/rGranularity);      % range searching steps
+    vSteps       = floor((vMax+1)/vGranularity);      % velocity searching steps
+    Pamusic      = zeros(1, aSteps);                  % azimuth spectrum
+    Prmusic      = zeros(1, rSteps);                  % range spectrum
+    Pvmusic      = zeros(1, vSteps);                  % velocity spectrum
+    aziGrid      = linspace(-aMax/2, aMax/2, aSteps); % azimuth grid for plotting
+    rngGrid      = linspace(0, rMax-1, rSteps);       % range grid for plotting
+    velGrid      = linspace(-vMax/2, vMax/2, vSteps); % velocity grid for plotting
     
     % Estimated results
     estResults = struct;
@@ -71,14 +77,15 @@ function estResults = music(rdrEstParams, bsParams, rxGrid, txGrid)
     [Ua, Sa] = eig(Ra);
     Va       = real(diag(Sa));
     L        = determineNumTargets(Va);
-    [~, Ia]  = sort(Va,'descend');
+    [~, Ia]  = sort(Va, 'descend');
     Ua       = Ua(:,Ia);
     Uan      = Ua(:,L+1:end);
 
     % Angle spectrum
-    for a = 1:aMax+1
-        aa         = exp(-2j.*pi.*sind(a-aMax/2-1).*d.*(0:1:nAnts-1)).';  % Angle steering vector
-        Pamusic(a) = 1./((aa'*Uan)*(Uan'*aa));
+    for a = 1:floor((aMax+1)/aGranularity)-1
+        searchAngle = (a-1)*aGranularity-aMax/2;
+        aa          = exp(-2j.*pi.*sind(searchAngle).*d.*(0:1:nAnts-1)).';  % angle steering vector
+        Pamusic(a)  = 1./((aa'*Uan)*(Uan'*aa));
     end
     
     % Normalization
@@ -88,7 +95,7 @@ function estResults = music(rdrEstParams, bsParams, rxGrid, txGrid)
 
     % Assignment
     [~, azi] = findpeaks(PamusicdB, 'MinPeakHeight', -5, 'SortStr', 'descend');
-    estResults.azi = azi-aMax/2-1;
+    estResults.azi = (azi-1)*aGranularity-aMax/2;
 
     %% Range and Doppler Estimation
     % Element-wise multiplication
@@ -115,14 +122,16 @@ function estResults = music(rdrEstParams, bsParams, rxGrid, txGrid)
     Uvn      = Uv(:,L+1:end);
 
     % Range and Doppler spectra
-    for r = 1:rMax+1
-        ar         = exp(-2j.*pi.*scs.*2.*r.*(0:1:nSc-1)./c).';  % Range steering vector
-        Prmusic(r) = 1./((ar'*Urn)*(Urn'*ar));
+    for r = 1:floor((rMax+1)/rGranularity)-1
+        searchRange = (r-1)*rGranularity;
+        ar          = exp(-2j.*pi.*scs.*2.*searchRange.*(0:1:nSc-1)./c).';  % range steering vector
+        Prmusic(r)  = 1./((ar'*Urn)*(Urn'*ar));
     end
 
-    for v = 1:vMax+1
-        av         = exp(2j.*pi.*T.*2.*(v-vMax/2-1).*(0:1:nSym-1)./lambda).';  % Velocity steering vector
-        Pvmusic(v) = 1./((av'*Uvn)*(Uvn'*av));
+    for v = 1:floor((vMax+1)/vGranularity)-1
+        searchVelocity = (v-1)*vGranularity-vMax/2;
+        av             = exp(2j.*pi.*T.*2.*searchVelocity.*(0:1:nSym-1)./lambda).';  % velocity steering vector
+        Pvmusic(v)     = 1./((av'*Uvn)*(Uvn'*av));
     end
     
     % Normalization
@@ -137,8 +146,8 @@ function estResults = music(rdrEstParams, bsParams, rxGrid, txGrid)
     % Assignment
     [~, rng] = findpeaks(PrmusicdB, 'MinPeakHeight', -1, 'SortStr', 'descend');
     [~, vel] = findpeaks(PvmusicdB, 'MinPeakHeight', -5, 'SortStr', 'descend');
-    estResults.rng = rng;
-    estResults.vel = vel-vMax/2-1;
+    estResults.rng = (rng-1)*rGranularity;
+    estResults.vel = (vel-1)*vGranularity-vMax/2;
 
     %% Plots
     plotMUSICSpectra;
@@ -164,15 +173,15 @@ function estResults = music(rdrEstParams, bsParams, rxGrid, txGrid)
 
     function plotMUSICSpectra
     % Plot MUSIC spectra
-        figure('Name','MUSIC Estimation')
+        figure('Name', 'MUSIC Estimation')
         
-        t = tiledlayout(3,1,'TileSpacing','compact');
-        title(t,'MUSIC Estimation')
-        ylabel(t,'MUSIC Spectra (dB)')
+        t = tiledlayout(3, 1, 'TileSpacing', 'compact');
+        title(t, 'MUSIC Estimation')
+        ylabel(t, 'MUSIC Spectra (dB)')
 
         % plot DoA estimation
         nexttile(1)
-        plot(aziGrid,PamusicdB,'LineWidth',1)
+        plot(aziGrid, PamusicdB, 'LineWidth', 1)
         title('DoA Estimation')
         xlabel('Azimuth (°)')
         xlim([-aMax/2 aMax/2])
@@ -180,7 +189,7 @@ function estResults = music(rdrEstParams, bsParams, rxGrid, txGrid)
 
         % plot range estimation 
         nexttile(2)
-        plot(rngGrid,PrmusicdB,'LineWidth',1)
+        plot(rngGrid, PrmusicdB, 'LineWidth', 1)
         title('Range Estimation')
         xlabel('Range (m)')
         xlim([0 rMax])
@@ -188,10 +197,10 @@ function estResults = music(rdrEstParams, bsParams, rxGrid, txGrid)
 
         % plot doppler/velocity estimation 
         nexttile(3)
-        plot(velGrid,PvmusicdB,'LineWidth',1)
+        plot(velGrid, PvmusicdB, 'LineWidth', 1)
         title('Velocity(Doppler) Estimation')
         xlabel('Radial Velocity (m/s)')
-        xlim([-vMax/2 vMax/2])
+        xlim([-vMax vMax])
         grid on
 
     end
