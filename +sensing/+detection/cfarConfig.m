@@ -21,13 +21,13 @@ function cfar2D = cfarConfig(radarEstParams)
     [~,rngIdx]           = min(abs(rngGrid-rngDetec));
     [~,dopIdx]           = min(abs(dopGrid-dopDetec));
     [columnIdxs,rowIdxs] = meshgrid(dopIdx(1):dopIdx(2), rngIdx(1):rngIdx(2));
-    CUTIdx               = [rowIdxs(:) columnIdxs(:)]';        % Cell-under-test index
+    CUTIdx               = [rowIdxs(:) columnIdxs(:)]';        % cell-under-test index
 
     %% 2D-CFAR
     cfarDetector2D                       = phased.CFARDetector2D;
     cfarDetector2D.Method                = 'CA';                % 'CA', 'GOCA', 'SOCA', 'OS'
     cfarDetector2D.ThresholdFactor       = 'Auto';              % 'Auto', 'Input port', 'Custom'
-    cfarDetector2D.ProbabilityFalseAlarm = radarEstParams.Pfa;  % Only when 'ThresholdFactor' is set to 'Auto'
+    cfarDetector2D.ProbabilityFalseAlarm = radarEstParams.Pfa;  % only when 'ThresholdFactor' is set to 'Auto'
     cfarDetector2D.OutputFormat          = 'Detection index';   % 'CUT result', 'Detection index'
     cfarDetector2D.GuardBandSize         = [1 1];               % guardbandSize
     cfarDetector2D.TrainingBandSize      = [8 8];               % trainingbandSize
