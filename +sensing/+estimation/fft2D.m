@@ -213,7 +213,7 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     % Plot 2D-FFT spectra (in dB)  
         figure('Name', '2D FFT Results')
      
-        t = tiledlayout(3, 1, 'TileSpacing','compact');
+        t = tiledlayout(3, 1, 'TileSpacing', 'compact');
         title(t, '2D-FFT Estimation')
         ylabel(t, 'FFT Spectra (dB)')
 
