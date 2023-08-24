@@ -30,24 +30,24 @@ function estResults = music(rdrEstParams, bsParams, rxGrid, txGrid)
 % Communications, 2023.
 
     %% Parameters
-    [nSc,nSym,nAnts] = size(rxGrid);                  % OFDM rxGrid
+    [nSc, nSym, nAnts] = size(rxGrid);                % OFDM rxGrid
     scs    = bsParams.scs*1e3;                        % Subcarrier spacing
     c      = physconst('LightSpeed');                 % Light speed
     fc     = rdrEstParams.fc;                         % Carrier frequency
     lambda = c/fc;                                    % Wavelength
     T      = rdrEstParams.Tsri;                       % Duration time of a whole OFDM symbol
-    d      = bsParams.txArray.ElementSpacing/lambda; % Antenna array element spacing, normally set to 0.5
+    d      = bsParams.txArray.ElementSpacing/lambda;  % Antenna array element spacing, normally set to 0.5
 
     % MUSIC spectra configuration
-    aMax    = 180;             % in degrees
-    rMax    = 500;             % in meters
-    vMax    = 100;             % in meters per second
-    Pamusic = zeros(1,aMax+1); % Azimuth spectrum
-    Prmusic = zeros(1,rMax+1); % Range spectrum
-    Pvmusic = zeros(1,vMax+1); % Velocity spectrum
-    aziGrid = -aMax/2:aMax/2;  % Azimuth grid
-    rngGrid = 1:rMax+1;        % Range grid
-    velGrid = -vMax/2:vMax/2;  % Velocity grid
+    aMax    = 120;              % in degrees
+    rMax    = 500;              % in meters
+    vMax    = 100;              % in meters per second
+    Pamusic = zeros(1, aMax+1); % Azimuth spectrum
+    Prmusic = zeros(1, rMax+1); % Range spectrum
+    Pvmusic = zeros(1, vMax+1); % Velocity spectrum
+    aziGrid = -aMax/2:aMax/2;   % Azimuth grid
+    rngGrid = 1:rMax+1;         % Range grid
+    velGrid = -vMax/2:vMax/2;   % Velocity grid
     
     % Estimated results
     estResults = struct;
@@ -59,21 +59,21 @@ function estResults = music(rdrEstParams, bsParams, rxGrid, txGrid)
     end
 
     %% DoA Estimation
-    % Angle autocorrelation matrix
-    rxGridReshaped = reshape(rxGrid,nSc*nSym,nAnts)';   % [nAnts x nSc*nSym]
-    Ra = rxGridReshaped*rxGridReshaped'./(nSc*nSym);    % [nAnts x nAnts]
+    % Array correlation matrix
+    rxGridReshaped = reshape(rxGrid, nSc*nSym, nAnts)';   % [nAnts x nSc*nSym]
+    Ra = rxGridReshaped*rxGridReshaped'./(nSc*nSym);      % [nAnts x nAnts]
 
     % Eigenvalue decomposition
     % Ua: orthogonal eigen matrix, 
     % Sa: real-value eigenvalue diagonal matrix in descending order
     % Va: a vector taking the diagonal values of Sa
     % L: The number of targets in the DoA of interest
-    [Ua,Sa] = eig(Ra);
-    Va      = real(diag(Sa));
-    L       = determineNumTargets(Va);
-    [~,Ia]  = sort(Va,'descend');
-    Ua      = Ua(:,Ia);
-    Uan     = Ua(:,L+1:end);
+    [Ua, Sa] = eig(Ra);
+    Va       = real(diag(Sa));
+    L        = determineNumTargets(Va);
+    [~, Ia]  = sort(Va,'descend');
+    Ua       = Ua(:,Ia);
+    Uan      = Ua(:,L+1:end);
 
     % Angle spectrum
     for a = 1:aMax+1
@@ -87,7 +87,7 @@ function estResults = music(rdrEstParams, bsParams, rxGrid, txGrid)
     PamusicdB   = mag2db(PamusicNorm);
 
     % Assignment
-    [~,azi] = findpeaks(PamusicdB,'Threshold',5,'SortStr','descend');
+    [~, azi] = findpeaks(PamusicdB, 'MinPeakHeight', -5, 'SortStr', 'descend');
     estResults.azi = azi-aMax/2-1;
 
     %% Range and Doppler Estimation
@@ -95,24 +95,24 @@ function estResults = music(rdrEstParams, bsParams, rxGrid, txGrid)
     channelInfo = bsxfun(@times, rxGrid, pagectranspose(pagetranspose(txGrid))); % [nSc x nSym x nAnts]
     H = channelInfo(:,:,1);  % [nSc x nSym]
 
-    % Range and Doppler autocorrelation matrices
+    % Range and Doppler correlation matrices
     Rr = H*H'./nSym;         % H*(hermitian transpose(H)),  [nSc x nSc]
     Rv = H.'*conj(H)./nSc;   % transpose(H)*conjugate(H), [nSym x nSym]
 
     % Eigenvalue decomposition
     % Ur,Uv: orthogonal eigen matrices,
     % Sr,Sv: real-value eigenvalue diagonal matrices in descending order
-    [Ur,Sr] = eig(Rr);
-    Vr      = real(diag(Sr));
-    [~,Ir]  = sort(Vr,'descend');
-    Ur      = Ur(:,Ir);
-    Urn     = Ur(:,L+1:end);
+    [Ur, Sr] = eig(Rr);
+    Vr       = real(diag(Sr));
+    [~, Ir]  = sort(Vr, 'descend');
+    Ur       = Ur(:,Ir);
+    Urn      = Ur(:,L+1:end);
 
-    [Uv,Sv] = eig(Rv);
-    Vv      = real(diag(Sv));
-    [~,Iv]  = sort(Vv,'descend');
-    Uv      = Uv(:,Iv);
-    Uvn     = Uv(:,L+1:end);
+    [Uv, Sv] = eig(Rv);
+    Vv       = real(diag(Sv));
+    [~, Iv]  = sort(Vv, 'descend');
+    Uv       = Uv(:,Iv);
+    Uvn      = Uv(:,L+1:end);
 
     % Range and Doppler spectra
     for r = 1:rMax+1
@@ -135,8 +135,8 @@ function estResults = music(rdrEstParams, bsParams, rxGrid, txGrid)
     PvmusicdB   = mag2db(PvmusicNorm);
     
     % Assignment
-    [~,rng] = findpeaks(PrmusicdB,'Threshold',1e-2,'SortStr','descend');
-    [~,vel] = findpeaks(PvmusicdB,'Threshold',2,'SortStr','descend');
+    [~, rng] = findpeaks(PrmusicdB, 'MinPeakHeight', -1, 'SortStr', 'descend');
+    [~, vel] = findpeaks(PvmusicdB, 'MinPeakHeight', -5, 'SortStr', 'descend');
     estResults.rng = rng;
     estResults.vel = vel-vMax/2-1;
 
