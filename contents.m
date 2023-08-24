@@ -14,7 +14,7 @@
 
 %% MATLAB version and toolboxes required: 
 
-% R2021a or above,
+% R2021b or above,
 % 5G Toolbox, Phased Array System Toolbox.
 
 
