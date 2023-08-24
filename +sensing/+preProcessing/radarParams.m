@@ -100,8 +100,9 @@ function radarEstParams = radarParams(nSlots, carrier, waveInfo, bsParams, topoP
 
     steeringVec = cat(2,steeringVec{:}); % [nRxAnts x nTargets]
 
-    radarEstParams.scanScale     = 120;  % [-60°, 60°]
-    radarEstParams.RxSteeringVec = steeringVec;
+    radarEstParams.scanScale       = 120;  % scan scale, normally set to 120°, meaning [-60°, 60°]
+    radarEstParams.scanGranularity = .5;   % scan granularity, in degree
+    radarEstParams.RxSteeringVec   = steeringVec;
 
     %% Restore Targets' Real Position Configuration
     % CFAR detection zone
