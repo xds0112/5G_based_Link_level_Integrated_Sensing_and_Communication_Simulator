@@ -200,7 +200,7 @@ function estResults = music(rdrEstParams, bsParams, rxGrid, txGrid)
         plot(velGrid, PvmusicdB, 'LineWidth', 1)
         title('Velocity(Doppler) Estimation')
         xlabel('Radial Velocity (m/s)')
-        xlim([-vMax vMax])
+        xlim([-vMax/2 vMax/2])
         grid on
 
     end
