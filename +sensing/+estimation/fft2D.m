@@ -32,14 +32,6 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     nIFFT = radarEstParams.nIFFT;
     nFFT  = radarEstParams.nFFT;
 
-    % Angular grid for plotting
-    aMax    = radarEstParams.scanScale;
-    aziGrid = -aMax/2:aMax/2;
-
-    % Range and Doppler grid for plotting
-    rngGrid = ((0:nIFFT-1)*radarEstParams.rRes)';        % [0,nIFFT-1]*rRes
-    dopGrid = ((-nFFT/2:nFFT/2-1)*radarEstParams.vRes)'; % [-nFFT/2,nFFT/2-1]*vRes
-
     % CFAR
     cfarDetector = cfar.cfarDetector2D;
     CUTIdx       = cfar.CUTIdx;
@@ -52,17 +44,20 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
 
     %% DoA Estimation using Conventional Beamscan Method
     % Array parameters
-    d = .5;  % Antenna array element spacing, normally set to 0.5
+    d = .5;                                           % antenna array element spacing, normally set to 0.5
+    scanGranularity = radarEstParams.scanGranularity; % beam scan granularity, in degree
+    aMax = radarEstParams.scanScale;                  % beam scan scale, in degree
 
     % Array correlation matrix
     rxGridReshaped = reshape(rxGrid, nSc*nSym, nAnts)'; % [nAnts x nSc*nSym]
     Ra = rxGridReshaped*rxGridReshaped'./(nSc*nSym);    % [nAnts x nAnts]
 
     % Generare beamforming power spectrum
-    Pbf = zeros(1, aMax+1);
-    for a = 1:(aMax+1)
-        aa     = exp(-2j.*pi.*sind(a-aMax/2-1).*d.*(0:1:nAnts-1)).'; % angle steering vector, [1 x nAnts]
-        Pbf(a) = aa'*Ra*aa;
+    Pbf = zeros(1, floor((aMax+1)/scanGranularity)-1);
+    for a = 1:floor((aMax+1)/scanGranularity)-1
+        scanAngle = (a-1)*scanGranularity - aMax/2;
+        aa        = exp(-2j.*pi.*sind(scanAngle).*d.*(0:1:nAnts-1)).'; % angle steering vector, [1 x nAnts]
+        Pbf(a)    = aa'*Ra*aa;
     end
     
     % Normalization
@@ -72,7 +67,7 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     
     % DoA estimation
     [~, aIdx] = findpeaks(PbfdB, 'MinPeakHeight', -5, 'SortStr', 'descend');
-    aziEst = aIdx - aMax/2 -1;
+    aziEst = (aIdx-1)*scanGranularity - aMax/2;
 
     % Assignment
     estResults.aziEst = aziEst;
@@ -82,8 +77,8 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     detections = cell(nAnts, 1);
 
     % Estimated results
-    rngEst     = cell(nAnts, 1);
-    velEst     = cell(nAnts, 1);
+    rngEst = cell(nAnts, 1);
+    velEst = cell(nAnts, 1);
 
     % Element-wise multiplication
     channelInfo = bsxfun(@times, rxGrid, pagectranspose(pagetranspose(txGrid)));  % [nSc x nSym x nAnts]
@@ -200,6 +195,10 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     % plot 2D range-Doppler(velocity) map
         figure('Name','2D RDM')
 
+        % Range and Doppler grid for plotting
+        rngGrid = ((0:nIFFT-1)*radarEstParams.rRes)';        % [0, nIFFT-1]*rRes
+        dopGrid = ((-nFFT/2:nFFT/2-1)*radarEstParams.vRes)'; % [-nFFT/2, nFFT/2-1]*vRes
+
         h = imagesc(dopGrid, rngGrid, mag2db(abs(rdm(:,:,aryIdx))));
         h.Parent.YDir = 'normal';
         colorbar
@@ -218,6 +217,11 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
         title(t, '2D-FFT Estimation')
         ylabel(t, 'FFT Spectra (dB)')
 
+        % Angular, range and Doppler grid for plotting
+        aziGrid = -aMax/2:scanGranularity:aMax/2;            % [-aMax/2, aMax/2]
+        rngGrid = ((0:nIFFT-1)*radarEstParams.rRes)';        % [0, nIFFT-1]*rRes
+        dopGrid = ((-nFFT/2:nFFT/2-1)*radarEstParams.vRes)'; % [-nFFT/2, nFFT/2-1]*vRes
+
         % plot DoA spectrum 
         nexttile(1)
         aziFFTdB = PbfdB;
@@ -227,7 +231,6 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
         xlim([-60 60])
         grid on
 
-        
         % plot range spectrum 
         nexttile(2)
         rngIFFTPlot = abs(ifftshift(rngIFFT(:, slowTimeIdx, aryIdx)));
