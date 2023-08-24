@@ -29,18 +29,18 @@ function simuParams = scenarioTimeDivisionDuplex()
     bs.cfarEstZone      = [50 500; -20 20];      % [a b; c d], a to b m, c to d m/s
 
     % Attached UEs
-    ue = networkElements.ue.basicUE();
-    ue.ID       = 1;
-    ue.position = [100 100 1.5];  % in meters
-    ueParams    = ue;
+    ue(1) = networkElements.ue.basicUE();
+    ue(1).ID       = 1;
+    ue(1).position = [100 100 1.5];  % in meters
+    ueParams       = ue;
     
     % Attached targets
-    tgt = networkElements.target.basicTarget();
-    tgt.ID       = 1;
-    tgt.position = [100 100 1.5];  % in meters
-    tgt.rcs      = 1;              % in meters^2
-    tgt.velocity = 5;              % in meters per second
-    tgtParams    = tgt;
+    tgt(1) = networkElements.target.basicTarget();
+    tgt(1).ID       = 1;
+    tgt(1).position = [100 100 1.5];  % in meters
+    tgt(1).rcs      = 1;              % in meters^2
+    tgt(1).velocity = 5;              % in meters per second
+    tgtParams       = tgt;
     
     % Update bs and UE/target pairs
     bs.attachedUEs  = ueParams;
