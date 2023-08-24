@@ -42,7 +42,7 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     % Estimated results
     estResults = struct;
 
-    %% DoA Estimation using MVDR Beamscan Method
+    %% DoA Estimation using MVDR Beamforming Method
     % Array parameters
     d = .5;                                           % antenna array element spacing, normally set to 0.5
     scanGranularity = radarEstParams.scanGranularity; % beam scan granularity, in degree
@@ -52,7 +52,7 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     rxGridReshaped = reshape(rxGrid, nSc*nSym, nAnts)'; % [nAnts x nSc*nSym]
     Ra = rxGridReshaped*rxGridReshaped'./(nSc*nSym);    % [nAnts x nAnts]
 
-    % Minimum variance distortionless response (MVDR) beamformer  
+    % Minimum variance distortionless response (MVDR) beamforming method  
     Pmvdr = zeros(1, floor((aMax+1)/scanGranularity));
     for a = 1:floor((aMax+1)/scanGranularity)
         scanAngle = (a-1)*scanGranularity - aMax/2;
