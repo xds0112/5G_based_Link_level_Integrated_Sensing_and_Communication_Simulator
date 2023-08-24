@@ -53,8 +53,8 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     Ra = rxGridReshaped*rxGridReshaped'./(nSc*nSym);    % [nAnts x nAnts]
 
     % Generare beamforming power spectrum
-    Pbf = zeros(1, floor((aMax+1)/scanGranularity)-1);
-    for a = 1:floor((aMax+1)/scanGranularity)-1
+    Pbf = zeros(1, floor((aMax+1)/scanGranularity));
+    for a = 1:floor((aMax+1)/scanGranularity)
         scanAngle = (a-1)*scanGranularity - aMax/2;
         aa        = exp(-2j.*pi.*sind(scanAngle).*d.*(0:1:nAnts-1)).'; % angle steering vector, [1 x nAnts]
         Pbf(a)    = aa'*Ra*aa;
@@ -217,10 +217,10 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
         title(t, '2D-FFT Estimation')
         ylabel(t, 'FFT Spectra (dB)')
 
-        % Angular, range and Doppler grid for plotting
-        aziGrid = -aMax/2:scanGranularity:aMax/2;            % [-aMax/2, aMax/2]
-        rngGrid = ((0:nIFFT-1)*radarEstParams.rRes)';        % [0, nIFFT-1]*rRes
-        dopGrid = ((-nFFT/2:nFFT/2-1)*radarEstParams.vRes)'; % [-nFFT/2, nFFT/2-1]*vRes
+        % Angular, range, and Doppler grid for plotting
+        aziGrid = linspace(-aMax/2, aMax/2, floor((aMax+1)/scanGranularity)); % [-aMax/2, aMax/2]
+        rngGrid = ((0:nIFFT-1)*radarEstParams.rRes)';                         % [0, nIFFT-1]*rRes
+        dopGrid = ((-nFFT/2:nFFT/2-1)*radarEstParams.vRes)';                  % [-nFFT/2, nFFT/2-1]*vRes
 
         % plot DoA spectrum 
         nexttile(1)
