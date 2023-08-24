@@ -27,16 +27,16 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
 % Author: D.S Xue, Key Laboratory of Universal Wireless Communications,
 % Ministry of Education, BUPT.
 
-    %% Input Parameters
+    %% Parameters
     [nSc, nSym, nAnts] = size(rxGrid);
     nIFFT = radarEstParams.nIFFT;
     nFFT  = radarEstParams.nFFT;
 
-    % Angular grid
+    % Angular grid for plotting
     aMax    = radarEstParams.scanScale;
     aziGrid = -aMax/2:aMax/2;
 
-    % Range and Doppler grid
+    % Range and Doppler grid for plotting
     rngGrid = ((0:nIFFT-1)*radarEstParams.rRes)';        % [0,nIFFT-1]*rRes
     dopGrid = ((-nFFT/2:nFFT/2-1)*radarEstParams.vRes)'; % [-nFFT/2,nFFT/2-1]*vRes
 
@@ -47,16 +47,10 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
         cfarDetector.OutputFormat = 'Detection index';
     end
 
-    %% Simulation params initialization
-    % 3D-FFT parameters
-    detections = cell(nAnts, 1);
-
     % Estimated results
     estResults = struct;
-    rngEst     = cell(nAnts, 1);
-    velEst     = cell(nAnts, 1);
 
-    %% DoA estimation using beamscan method
+    %% DoA Estimation using Conventional Beamscan Method
     % Array parameters
     d = .5;  % Antenna array element spacing, normally set to 0.5
 
@@ -84,6 +78,13 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     estResults.aziEst = aziEst;
 
     %% 2D-FFT Algorithm
+    % Simulation params initialization
+    detections = cell(nAnts, 1);
+
+    % Estimated results
+    rngEst     = cell(nAnts, 1);
+    velEst     = cell(nAnts, 1);
+
     % Element-wise multiplication
     channelInfo = bsxfun(@times, rxGrid, pagectranspose(pagetranspose(txGrid)));  % [nSc x nSym x nAnts]
 
@@ -118,7 +119,7 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
                 % Remove outliers from estimation values
                 rngEstFiltered = filterOutliers(cat(2, rngEst{:}));
                 velEstFiltered = filterOutliers(cat(2, velEst{:}));
-                
+
                 % Assignment
                 estResults.rngEst = mean(rngEstFiltered, 2);
                 estResults.velEst = mean(velEstFiltered, 2);
