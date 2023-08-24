@@ -29,7 +29,7 @@ numSlots = numFrames*carrier.SlotsPerFrame;
 % HARQ, DLSCH and precoding matrix set up for link transmission
 [harq, dlsch, newWtx] = communication.preProcessing.fullDownlinkTransmissionSetup(pdsch, pdschExt, channel, carrier);
 
-% Downlink grid mapping an transmitting
+% Downlink grid mapping and transmitting
 nTxAnts = prod(bsParams.antConfig.bsAntSize);
 rdrTxGrid = communication.fullDownlinkTransmit(numFrames, carrier, pdsch, pdschExt, nTxAnts, newWtx, harq, dlsch);
 
