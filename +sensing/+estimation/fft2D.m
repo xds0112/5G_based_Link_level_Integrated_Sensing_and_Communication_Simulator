@@ -81,7 +81,7 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     aziEst = aIdx - aMax/2 -1;
 
     % Assignment
-    estResults.aziEst = mean(aziEst);
+    estResults.aziEst = aziEst;
 
     %% 2D-FFT Algorithm
     % Element-wise multiplication
@@ -118,16 +118,17 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
                 % Remove outliers from estimation values
                 rngEstFiltered = filterOutliers(cat(2, rngEst{:}));
                 velEstFiltered = filterOutliers(cat(2, velEst{:}));
+                
                 % Assignment
-                estResults(i).rngEst = mean(rngEstFiltered, 2);
-                estResults(i).velEst = mean(velEstFiltered, 2);
+                estResults.rngEst = mean(rngEstFiltered, 2);
+                estResults.velEst = mean(velEstFiltered, 2);
 
             end
 
          end
     end
 
-%     estResults = getUniqueStruct(estResults);
+    estResults = getUniqueStruct(estResults);
 
     %% Plot Results
     % plot 2D-RDM (1st Rx antenna array element)
