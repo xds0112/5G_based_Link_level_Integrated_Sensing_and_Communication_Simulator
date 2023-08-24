@@ -226,7 +226,7 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
         nexttile(1)
         aziFFTdB = PmvdrdB;
         plot(aziGrid, aziFFTdB, 'LineWidth', 1);
-        title('DoA Estimation (Beamscan)')
+        title('DoA Estimation')
         xlabel('DoA (°)')
         xlim([-60 60])
         grid on
