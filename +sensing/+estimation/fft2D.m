@@ -42,7 +42,7 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     % Estimated results
     estResults = struct;
 
-    %% DoA Estimation using Conventional Beamscan Method
+    %% DoA Estimation using MVDR Beamscan Method
     % Array parameters
     d = .5;                                           % antenna array element spacing, normally set to 0.5
     scanGranularity = radarEstParams.scanGranularity; % beam scan granularity, in degree
@@ -52,21 +52,21 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     rxGridReshaped = reshape(rxGrid, nSc*nSym, nAnts)'; % [nAnts x nSc*nSym]
     Ra = rxGridReshaped*rxGridReshaped'./(nSc*nSym);    % [nAnts x nAnts]
 
-    % Generare beamforming power spectrum
-    Pbf = zeros(1, floor((aMax+1)/scanGranularity));
+    % Minimum variance distortionless response (MVDR) beamformer  
+    Pmvdr = zeros(1, floor((aMax+1)/scanGranularity));
     for a = 1:floor((aMax+1)/scanGranularity)
         scanAngle = (a-1)*scanGranularity - aMax/2;
         aa        = exp(-2j.*pi.*sind(scanAngle).*d.*(0:1:nAnts-1)).'; % angle steering vector, [1 x nAnts]
-        Pbf(a)    = aa'*Ra*aa;
+        Pmvdr(a)  = 1./(aa'*Ra^-1*aa);
     end
     
     % Normalization
-    Pbf     = abs(Pbf);
-    PbfNorm = Pbf./max(Pbf);
-    PbfdB   = mag2db(PbfNorm);
+    Pmvdr     = abs(Pmvdr);
+    PmvdrNorm = Pmvdr./max(Pmvdr);
+    PmvdrdB   = mag2db(PmvdrNorm);
     
     % DoA estimation
-    [~, aIdx] = findpeaks(PbfdB, 'MinPeakHeight', -5, 'SortStr', 'descend');
+    [~, aIdx] = findpeaks(PmvdrdB, 'MinPeakHeight', -5, 'SortStr', 'descend');
     aziEst = (aIdx-1)*scanGranularity - aMax/2;
 
     % Assignment
@@ -224,7 +224,7 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
 
         % plot DoA spectrum 
         nexttile(1)
-        aziFFTdB = PbfdB;
+        aziFFTdB = PmvdrdB;
         plot(aziGrid, aziFFTdB, 'LineWidth', 1);
         title('DoA Estimation (Beamscan)')
         xlabel('DoA (°)')
