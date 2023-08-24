@@ -94,7 +94,7 @@ function estResults = music(rdrEstParams, bsParams, rxGrid, txGrid)
     PamusicdB   = mag2db(PamusicNorm);
 
     % Assignment
-    [~, azi] = findpeaks(PamusicdB, 'MinPeakHeight', -5, 'SortStr', 'descend');
+    [~, azi] = findpeaks(PamusicdB, 'MinPeakHeight', -1e2, 'SortStr', 'descend');
     estResults.azi = (azi-1)*aGranularity-aMax/2;
 
     %% Range and Doppler Estimation
