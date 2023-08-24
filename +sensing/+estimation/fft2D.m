@@ -42,33 +42,13 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     % Estimated results
     estResults = struct;
 
-    %% DoA Estimation using MVDR Beamforming Method
-    % Array parameters
-    d               = .5;                              % antenna array element spacing, normally set to 0.5
-    scanGranularity = radarEstParams.scanGranularity;  % beam scan granularity, in degree
-    aMax            = radarEstParams.scanScale;        % beam scan scale, in degree
-    aSteps          = floor((aMax+1)/scanGranularity); % beam scan steps
-
+    %% DoA Estimation
     % Array correlation matrix
     rxGridReshaped = reshape(rxGrid, nSc*nSym, nAnts)'; % [nAnts x nSc*nSym]
     Ra = rxGridReshaped*rxGridReshaped'./(nSc*nSym);    % [nAnts x nAnts]
 
-    % Minimum variance distortionless response (MVDR) beamforming method  
-    Pmvdr = zeros(1, aSteps);
-    for a = 1:aSteps
-        scanAngle = (a-1)*scanGranularity - aMax/2;
-        aa        = exp(-2j.*pi.*sind(scanAngle).*d.*(0:1:nAnts-1)).'; % angle steering vector, [1 x nAnts]
-        Pmvdr(a)  = 1./(aa'*Ra^-1*aa);
-    end
-    
-    % Normalization
-    Pmvdr     = abs(Pmvdr);
-    PmvdrNorm = Pmvdr./max(Pmvdr);
-    PmvdrdB   = mag2db(PmvdrNorm);
-    
-    % DoA estimation
-    [~, aIdx] = findpeaks(PmvdrdB, 'MinPeakHeight', -5, 'SortStr', 'descend');
-    aziEst = (aIdx-1)*scanGranularity - aMax/2;
+    % MVDR method
+    aziEst = sensing.estimation.doaEstimation.mvdrBF(radarEstParams, Ra);
 
     % Assignment
     estResults.aziEst = aziEst;
@@ -214,26 +194,16 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     % Plot 2D-FFT spectra (in dB)  
         figure('Name', '2D FFT Results')
      
-        t = tiledlayout(3, 1, 'TileSpacing', 'compact');
+        t = tiledlayout(2, 1, 'TileSpacing', 'compact');
         title(t, '2D-FFT Estimation')
         ylabel(t, 'FFT Spectra (dB)')
 
-        % Angular, range, and Doppler grid for plotting
-        aziGrid = linspace(-aMax/2, aMax/2, aSteps);         % [-aMax/2, aMax/2]
+        % Range and Doppler grid for plotting
         rngGrid = ((0:nIFFT-1)*radarEstParams.rRes)';        % [0, nIFFT-1]*rRes
         dopGrid = ((-nFFT/2:nFFT/2-1)*radarEstParams.vRes)'; % [-nFFT/2, nFFT/2-1]*vRes
-
-        % plot DoA spectrum 
-        nexttile(1)
-        aziFFTdB = PmvdrdB;
-        plot(aziGrid, aziFFTdB, 'LineWidth', 1);
-        title('DoA Estimation')
-        xlabel('DoA (°)')
-        xlim([-60 60])
-        grid on
-
+        
         % plot range spectrum 
-        nexttile(2)
+        nexttile(1)
         rngIFFTPlot = abs(ifftshift(rngIFFT(:, slowTimeIdx, aryIdx)));
         rngIFFTNorm = rngIFFTPlot./max(rngIFFTPlot);
         rngIFFTdB   = mag2db(rngIFFTNorm);
@@ -244,7 +214,7 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
         grid on
 
         % plot Doppler/velocity spectrum 
-        nexttile(3)    
+        nexttile(2)    
         % DFT per rows, [nSc x nFFT x nAnts]
         velFFTPlot = abs(fftshift(fft(chlInfoWindowed(fastTimeIdx, :, aryIdx), nFFT, 2)./sqrt(nFFT)));
         velFFTNorm = velFFTPlot./max(velFFTPlot);
