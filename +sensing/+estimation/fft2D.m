@@ -112,7 +112,7 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     plotRDM(1)
 
     % Uncomment to plot 2D-FFT spectra
-    plotFFTSpectra(1,1,1)
+    % plotFFTSpectra(1,1,1)
 
     %% Local functions
     function [rngWin, dopWin] = selectWindow(winType)
