@@ -145,7 +145,7 @@ function estResults = music(rdrEstParams, bsParams, rxGrid, txGrid)
     
     % Assignment
     [~, rng] = findpeaks(PrmusicdB, 'MinPeakHeight', -1, 'SortStr', 'descend');
-    [~, vel] = findpeaks(PvmusicdB, 'MinPeakHeight', -5, 'SortStr', 'descend');
+    [~, vel] = findpeaks(PvmusicdB, 'MinPeakHeight', -30, 'SortStr', 'descend');
     estResults.rng = (rng-1)*rGranularity;
     estResults.vel = (vel-1)*vGranularity-vMax/2;
 
