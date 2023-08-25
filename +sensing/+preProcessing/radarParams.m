@@ -79,41 +79,46 @@ function radarEstParams = radarParams(nSlots, carrier, waveInfo, bsParams, topoP
     ele         = topoParams.elevationTgts;  % elevation angle of target,  [1 x nTargets]
     azi         = topoParams.azimuthTgts;    % azimuth angle of target, [1 x nTargets]
     steeringVec = cell(1, nTargets);         % steering vector, [1 x nTargets]
+    nRxAnts     = nTxAnts;                   % Rx and Tx share the same antenna array
     
     if isa(txArray, 'phased.NRRectangularPanelArray') % UPA model
 
-        rxArySpacingX = txArray.Spacing(1);                % antenna array X-axis element spacing
-        rxArySpacingY = txArray.Spacing(2);                % antenna array Y-axis element spacing
-        nRxAntsX      = txArray.Size(1);                   % Rx antenna array X-axis element number
-        nRxAntsY      = txArray.Size(2);                   % Rx antenna array Y-axis element number
-        rxAntAryX     = ((0:1:nRxAntsX-1)*rxArySpacingX)'; % antenna array element, [nRxAntsX x 1]
-        rxAntAryY     = ((0:1:nRxAntsY-1)*rxArySpacingY)'; % antenna array element, [nRxAntsY x 1]
-        nRxAnts       = nTxAnts;                           % Rx and Tx share the antenna array
-        aryDelay      = zeros(nRxAnts, nTargets);          % antenna array delay, [nRxAnts x nTargets]
+        rxArySpacingX = txArray.Spacing(1);                % array X-axis element spacing
+        rxArySpacingY = txArray.Spacing(2);                % array Y-axis element spacing
+        nRxAntsX      = txArray.Size(1);                   % array X-axis element number
+        nRxAntsY      = txArray.Size(2);                   % array Y-axis element number
+        rxAntAryX     = ((0:1:nRxAntsX-1)*rxArySpacingX)'; % array X-axis element indices, [nRxAntsX x 1]
+        rxAntAryY     = ((0:1:nRxAntsY-1)*rxArySpacingY)'; % array Y-axis element indices, [nRxAntsY x 1]
+        aryDelayX     = zeros(nRxAntsX, nTargets);         % array X-axis time delay, [nRxAntsX x nTargets]
+        aryDelayY     = zeros(nRxAntsY, nTargets);         % array Y-axis time delay, [nRxAntsY x nTargets]
         
+        % UPA steering vector is defined in the spheric coordinate system
         for t = 1:nTargets
-            aryDelay(:,t)  = (rxAntAryX.*cosd(azi(t)).*sind(ele(t)) + rxAntAryY.*sind(azi(t)).*sind(ele(t)))/c; % antenna array delay, [nRxAnts x 1]
-            steeringVec{t} = exp(2j*pi*fc*aryDelay(:,t));  % array azimuth steering vector, [nRxAnts x 1]
+            aryDelayX(:,t) = rxAntAryX.*sind(azi(t)).*sind(ele(t))./c;
+            aryDelayY(:,t) = rxAntAryY.*cosd(azi(t)).*sind(ele(t))./c;
+            steeringVecX   = exp(2j.*pi.*fc.*aryDelayX(:,t));            % array X-axis steering vector, [nRxAntsX x 1]
+            steeringVecY   = exp(2j.*pi.*fc.*aryDelayY(:,t));            % array Y-axis steering vector, [nRxAntsY x 1]
+            steeringMat    = kron(steeringVecX, steeringVecY);           % array steering matrix, [nRxAntsX x nRxAntsY]
+            steeringVec{t} = reshape(steeringMat, nRxAntsX*nRxAntsY, 1); % array steering vector, [nRxAnts x 1]
         end
     
     else  % ULA model
 
-        rxArySpacing = txArray.ElementSpacing;          % antenna array element spacing
-        nRxAnts      = nTxAnts;                         % Rx and Tx share the antenna array
-        rxAntAry     = ((0:1:nRxAnts-1)*rxArySpacing)'; % antenna array element, [nRxAnts x 1]
-        aryDelay     = zeros(nRxAnts, nTargets);        % antenna array delay, [nRxAnts x nTargets]
+        rxArySpacing = txArray.ElementSpacing;          % array element spacing
+        rxAntAry     = ((0:1:nRxAnts-1)*rxArySpacing)'; % array element, [nRxAnts x 1]
+        aryDelay     = zeros(nRxAnts, nTargets);        % array delay, [nRxAnts x nTargets]
 
         for t = 1:nTargets
-            aryDelay(:,t)  = rxAntAry.*sind(azi(t))/c;    % antenna array delay, [nRxAnts x 1]
-            steeringVec{t} = exp(2j*pi*fc*aryDelay(:,t)); % array azimuth steering vector, [nRxAnts x 1]
+            aryDelay(:,t)  = rxAntAry.*sind(azi(t))./c;
+            steeringVec{t} = exp(2j.*pi.*fc.*aryDelay(:,t)); % array steering vector, [nRxAnts x 1]
         end
 
     end
 
     steeringVec = cat(2,steeringVec{:}); % [nRxAnts x nTargets]
 
-    radarEstParams.scanScale       = 120;  % scan scale, normally set to 120°, meaning [-60°, 60°]
-    radarEstParams.scanGranularity = .5;   % scan granularity, in degree
+    radarEstParams.scanScale       = 120; % scan scale, normally set to 120°, meaning [-60°, 60°]
+    radarEstParams.scanGranularity = .5;  % scan granularity, in degrees
     radarEstParams.RxSteeringVec   = steeringVec;
 
     %% Restore Targets' Real Position Configuration
