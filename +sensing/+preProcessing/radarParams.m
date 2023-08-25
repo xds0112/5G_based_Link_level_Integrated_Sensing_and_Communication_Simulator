@@ -10,31 +10,31 @@ function radarEstParams = radarParams(nSlots, carrier, waveInfo, bsParams, topoP
     %% Radar SNR Point Calculation  
     tgtParams = bsParams.attachedTgts;
     nTargets  = numel(tgtParams);
-    nSc       = carrier.NSizeGrid*12;                % Subcarriers
+    nSc       = carrier.NSizeGrid*12;                % subcarriers
     nSym      = nSlots*waveInfo.SymbolsPerSlot;      % OFDM symbols
-    uf        = 1;                                   % Freq domain occupation spacing factor
-    ut        = 1;                                   % Time domain occupation spacing factor  
-    nTxAnts   = prod(bsParams.antConfig.bsAntSize);  % Base station antenna size
+    uf        = 1;                                   % freq domain occupation spacing factor
+    ut        = 1;                                   % time domain occupation spacing factor  
+    nTxAnts   = prod(bsParams.antConfig.bsAntSize);  % base station antenna size
 
     % OFDM Parameters
     c      = physconst('Lightspeed');
-    fc     = bsParams.carrierFrequency;      % Carrier frequency
-    scs    = carrier.SubcarrierSpacing*1e3;  % Subcarrier spacing in Hz
-    lambda = c/fc;                           % Wavelength
-    fs     = waveInfo.SampleRate;            % Sample rate
-    Ts     = 1/fs;                           % Sampling-time interval
-    Tofdm  = 1/scs;                          % Duration of an effective OFDM symbol
+    fc     = bsParams.carrierFrequency;      % carrier frequency
+    scs    = carrier.SubcarrierSpacing*1e3;  % subcarrier spacing in Hz
+    lambda = c/fc;                           % wavelength
+    fs     = waveInfo.SampleRate;            % sample rate
+    Ts     = 1/fs;                           % sampling-time interval
+    Tofdm  = 1/scs;                          % duration of an effective OFDM symbol
     if strcmp(carrier.CyclicPrefix,'normal')
-        Tcp = Ts*ceil(nSc/8);                % Duration of normal OFDM CP
+        Tcp = Ts*ceil(nSc/8);                % duration of normal OFDM CP
     else % 'extended'
-        Tcp = Ts*ceil(nSc/4);                % Duration of extended OFDM CP
+        Tcp = Ts*ceil(nSc/4);                % duration of extended OFDM CP
     end
-    Tsri = Tofdm + Tcp;                      % Duration of a whole OFDM symbol
+    Tsri = Tofdm + Tcp;                      % duration of a whole OFDM symbol
 
     % Physical parameters
     kBoltz = physconst('Boltzmann');
     NF     = db2pow(bsParams.antConfig.noiseFigure);
-    Teq    = bsParams.antConfig.antTemperature + 290*(NF-1); % Equivalent noise temperature (in K)
+    Teq    = bsParams.antConfig.antTemperature + 290*(NF-1); % equivalent noise temperature (in K)
     N0     = fs*kBoltz*Teq;
     Pt     = db2pow(bsParams.txPower-30)*sqrt(waveInfo.Nfft^2/(carrier.NSizeGrid*12*nTxAnts));  % in W
     Ar     = db2pow(bsParams.antConfig.antGain);
@@ -52,11 +52,11 @@ function radarEstParams = radarParams(nSlots, carrier, waveInfo, bsParams, topoP
     snrdB = pow2db(snr);
     
     % radarEstParams
-    radarEstParams.fc       = fc;           % Central frequency
-    radarEstParams.fs       = fs;           % Sample rate
-    radarEstParams.Tsri     = Tsri;         % Duration of a whole OFDM symbol
-    radarEstParams.N0       = N0;           % Noise
-    radarEstParams.lsFading = sqrt(Pr./Pt); % Large-scale fading
+    radarEstParams.fc       = fc;           % central frequency
+    radarEstParams.fs       = fs;           % sample rate
+    radarEstParams.Tsri     = Tsri;         % duration of a whole OFDM symbol
+    radarEstParams.N0       = N0;           % noise
+    radarEstParams.lsFading = sqrt(Pr./Pt); % large-scale fading
     radarEstParams.snrdB    = snrdB;        % SNR points (dB) [1 x nTargets]
     radarEstParams.Pfa      = bsParams.Pfa;
     
@@ -65,35 +65,47 @@ function radarEstParams = radarParams(nSlots, carrier, waveInfo, bsParams, topoP
     % Range Parameters
     nIFFT                = 2^nextpow2(nSc/uf);
     radarEstParams.nIFFT = nIFFT;                % 2^n closest to subcarrier numbers
-    radarEstParams.rRes  = c/(2*(scs*uf)*nIFFT); % Range resolution
-    radarEstParams.rMax  = c/(2*(scs*uf));       % Maxium unambiguous range
+    radarEstParams.rRes  = c/(2*(scs*uf)*nIFFT); % range resolution
+    radarEstParams.rMax  = c/(2*(scs*uf));       % maxium unambiguous range
 
     % Velocity Parameters
     nFFT                = 2^nextpow2(nSym/ut);
     radarEstParams.nFFT = nFFT;                      % 2^n closest to symbol numbers
-    radarEstParams.vRes = lambda/(2*(Tsri*ut)*nFFT); % Velocity resolution
-    radarEstParams.vMax = lambda/(2*(Tsri*ut));      % Maxium unambiguous velocity
+    radarEstParams.vRes = lambda/(2*(Tsri*ut)*nFFT); % velocity resolution
+    radarEstParams.vMax = lambda/(2*(Tsri*ut));      % maxium unambiguous velocity
 
     % Antenna array orientation parameters
     txArray     = bsParams.txArray;
-    ele         = topoParams.elevationTgts;  % Elevation angle of target,  [1 x nTargets]
-    azi         = topoParams.azimuthTgts;    % Azimuth angle of target, [1 x nTargets]
-    steeringVec = cell(1,nTargets);      % Steering vector, [1 x nTargets]
+    ele         = topoParams.elevationTgts;  % elevation angle of target,  [1 x nTargets]
+    azi         = topoParams.azimuthTgts;    % azimuth angle of target, [1 x nTargets]
+    steeringVec = cell(1, nTargets);         % steering vector, [1 x nTargets]
     
-    if isa(txArray,'phased.NRRectangularPanelArray')    % UPA model
+    if isa(txArray, 'phased.NRRectangularPanelArray') % UPA model
 
-        disp('UPA model is not supported for radar sensing services')
-        return
+        rxArySpacingX = txArray.Spacing(1);                % antenna array X-axis element spacing
+        rxArySpacingY = txArray.Spacing(2);                % antenna array Y-axis element spacing
+        nRxAntsX      = txArray.Size(1);                   % Rx antenna array X-axis element number
+        nRxAntsY      = txArray.Size(2);                   % Rx antenna array Y-axis element number
+        rxAntAryX     = ((0:1:nRxAntsX-1)*rxArySpacingX)'; % antenna array element, [nRxAntsX x 1]
+        rxAntAryY     = ((0:1:nRxAntsY-1)*rxArySpacingY)'; % antenna array element, [nRxAntsY x 1]
+        nRxAnts       = nTxAnts;                           % Rx and Tx share the antenna array
+        aryDelay      = zeros(nRxAnts, nTargets);          % antenna array delay, [nRxAnts x nTargets]
+        
+        for t = 1:nTargets
+            aryDelay(:,t)  = (rxAntAryX.*cosd(azi(t)).*sind(ele(t)) + rxAntAryY.*sind(azi(t)).*sind(ele(t)))/c; % antenna array delay, [nRxAnts x 1]
+            steeringVec{t} = exp(2j*pi*fc*aryDelay(:,t));  % array azimuth steering vector, [nRxAnts x 1]
+        end
     
-    else                                                % ULA model
-        rxArySpacing = txArray.ElementSpacing;          % Antenna array element spacing
+    else  % ULA model
+
+        rxArySpacing = txArray.ElementSpacing;          % antenna array element spacing
         nRxAnts      = nTxAnts;                         % Rx and Tx share the antenna array
-        rxAntAry     = ((0:1:nRxAnts-1)*rxArySpacing)'; % Antenna array element, [nRxAnts x 1]
-        aryDelay     = zeros(nRxAnts,nTargets);         % Antenna array delay, [nRxAnts x nTargets]
+        rxAntAry     = ((0:1:nRxAnts-1)*rxArySpacing)'; % antenna array element, [nRxAnts x 1]
+        aryDelay     = zeros(nRxAnts, nTargets);        % antenna array delay, [nRxAnts x nTargets]
 
         for t = 1:nTargets
-            aryDelay(:,t)  = rxAntAry.*sind(azi(t))/c;    % Antenna array delay, [nRxAnts x 1]
-            steeringVec{t} = exp(2j*pi*fc*aryDelay(:,t)); % Array azimuth steering vector, [nRxAnts x 1]
+            aryDelay(:,t)  = rxAntAry.*sind(azi(t))/c;    % antenna array delay, [nRxAnts x 1]
+            steeringVec{t} = exp(2j*pi*fc*aryDelay(:,t)); % array azimuth steering vector, [nRxAnts x 1]
         end
 
     end
