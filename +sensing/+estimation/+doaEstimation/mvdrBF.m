@@ -43,7 +43,7 @@ function aziEst = mvdrBF(radarEstParams, Ra)
 
         title('DoA Estimation using MVDR Method')
         ylabel('Angular Spectrum (dB)')
-        xlabel('DoA (°)')
+        xlabel('Azimuth (°)')
         xlim([-aMax/2 aMax/2])
         grid on
 
