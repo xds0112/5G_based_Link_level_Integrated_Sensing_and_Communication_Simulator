@@ -170,7 +170,7 @@ classdef gNB < networkElements.networkElementsWithPosition
             
             % Configure the uniform planar array (UPA) or uniform linear array (ULA)
             % based on the sizes of antennas arrays.
-            if ~any(bsAntSize == 1)
+            if ~any(bsAntSize(1, end-1) == 1)
                 % Default antenna elements are [phased.NRAntennaElement]
                 ant = phased.NRRectangularPanelArray('ElementSet', {phased.NRAntennaElement, phased.NRAntennaElement}, ...
                     'Size', [bsAntSize(1),bsAntSize(2),1,1], 'Spacing', [.5,.5,3,3]*lambda);
