@@ -38,6 +38,8 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     if ~strcmp(cfarDetector.OutputFormat,'Detection index')
         cfarDetector.OutputFormat = 'Detection index';
     end
+    [rngMin, rngMax] = deal(radarEstParams.cfarEstZone(1,1), radarEstParams.cfarEstZone(1,2));
+    [velMin, velMax] = deal(radarEstParams.cfarEstZone(2,1), radarEstParams.cfarEstZone(2,2));
 
     % Estimated results
     estResults = struct;
@@ -187,6 +189,8 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
         title('Range-Doppler Map')
         xlabel('Radial Velocity (m/s)')
         ylabel('Range (m)')
+        ylim([rngMin rngMax])
+        xlim([velMin velMax])
 
     end
 
@@ -210,7 +214,7 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
         plot(rngGrid, rngIFFTdB, 'LineWidth', 1);
         title('Range Estimation')
         xlabel('Range (m)')
-        xlim([0 500])
+        xlim([rngMin rngMax])
         grid on
 
         % plot Doppler/velocity spectrum 
@@ -222,7 +226,7 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
         plot(dopGrid, velFFTdB, 'LineWidth', 1);
         title('Velocity(Doppler) Estimation')
         xlabel('Radial Velocity (m/s)')
-        xlim([-50 50])
+        xlim([velMin velMax])
         grid on
 
     end
