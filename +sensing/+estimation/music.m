@@ -36,7 +36,7 @@ function estResults = music(rdrEstParams, bsParams, rxGrid, txGrid)
     fc     = rdrEstParams.fc;                         % carrier frequency
     lambda = c/fc;                                    % wavelength
     T      = rdrEstParams.Tsri;                       % duration time of a whole OFDM symbol
-    d      = bsParams.txArray.ElementSpacing/lambda;  % antenna array element spacing, normally set to 0.5
+    d      = .5;                                      % antenna array element spacing, normally set to 0.5
 
     % MUSIC spectra configuration
     aMax         = rdrEstParams.scanScale;            % in degrees
@@ -58,13 +58,13 @@ function estResults = music(rdrEstParams, bsParams, rxGrid, txGrid)
     % Estimated results
     estResults = struct;
 
+    %% DoA Estimation
     % Antenna array type
-    if isa(bsParams.txArray,'phased.NRRectangularPanelArray') % UPA model is not supported yet
-        disp('MUSIC algorithm is not supported for UPA model')
+    if isa(bsParams.txArray, 'phased.NRRectangularPanelArray') % UPA model is not supported yet
+        disp('MUSIC algorithm is not supported for the UPA model yet')
         return
     end
 
-    %% DoA Estimation
     % Array correlation matrix
     rxGridReshaped = reshape(rxGrid, nSc*nSym, nAnts)';   % [nAnts x nSc*nSym]
     Ra = rxGridReshaped*rxGridReshaped'./(nSc*nSym);      % [nAnts x nAnts]
