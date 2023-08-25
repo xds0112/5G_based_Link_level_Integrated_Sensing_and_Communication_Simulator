@@ -127,8 +127,8 @@ function radarEstParams = radarParams(nSlots, carrier, waveInfo, bsParams, topoP
 
     % Sort by SNR in descending order
     radarEstParams.tgtRealPos = struct;
-    [~,idx] = sort(radarEstParams.snrdB,'descend');
-    [snrdB(:),r(:),v(:),ele(:),azi(:)] = deal(snrdB(idx),r(idx),v(idx),ele(idx),azi(idx));
+    [~, idx] = sort(radarEstParams.snrdB, 'descend');
+    [snrdB(:), r(:), v(:), ele(:), azi(:)] = deal(snrdB(idx), r(idx), v(idx), ele(idx), azi(idx));
 
     % Assignment
     for i = 1:nTargets
