@@ -89,15 +89,13 @@ function radarEstParams = radarParams(nSlots, carrier, waveInfo, bsParams, topoP
         nRxAntsY      = txArray.Size(2);                   % array Y-axis element number
         rxAntAryX     = ((0:1:nRxAntsX-1)*rxArySpacingX)'; % array X-axis element indices, [nRxAntsX x 1]
         rxAntAryY     = ((0:1:nRxAntsY-1)*rxArySpacingY)'; % array Y-axis element indices, [nRxAntsY x 1]
-        aryDelayX     = zeros(nRxAntsX, nTargets);         % array X-axis time delay, [nRxAntsX x nTargets]
-        aryDelayY     = zeros(nRxAntsY, nTargets);         % array Y-axis time delay, [nRxAntsY x nTargets]
         
         % UPA steering vector is defined in the spheric coordinate system
         for t = 1:nTargets
-            aryDelayX(:,t) = rxAntAryX.*sind(azi(t)).*sind(ele(t))./c;
-            aryDelayY(:,t) = rxAntAryY.*cosd(azi(t)).*sind(ele(t))./c;
-            steeringVecX   = exp(2j.*pi.*fc.*aryDelayX(:,t));            % array X-axis steering vector, [nRxAntsX x 1]
-            steeringVecY   = exp(2j.*pi.*fc.*aryDelayY(:,t));            % array Y-axis steering vector, [nRxAntsY x 1]
+            aryDelayX      = rxAntAryX.*sind(azi(t)).*sind(ele(t))./c;   % array X-axis time delay, [nRxAntsX x 1]
+            aryDelayY      = rxAntAryY.*cosd(azi(t)).*sind(ele(t))./c;   % array Y-axis time delay, [nRxAntsY x 1]
+            steeringVecX   = exp(2j.*pi.*fc.*aryDelayX);                 % array X-axis steering vector, [nRxAntsX x 1]
+            steeringVecY   = exp(2j.*pi.*fc.*aryDelayY);                 % array Y-axis steering vector, [nRxAntsY x 1]
             steeringMat    = kron(steeringVecX, steeringVecY);           % array steering matrix, [nRxAntsX x nRxAntsY]
             steeringVec{t} = reshape(steeringMat, nRxAntsX*nRxAntsY, 1); % array steering vector, [nRxAnts x 1]
         end
@@ -106,11 +104,10 @@ function radarEstParams = radarParams(nSlots, carrier, waveInfo, bsParams, topoP
 
         rxArySpacing = txArray.ElementSpacing;          % array element spacing
         rxAntAry     = ((0:1:nRxAnts-1)*rxArySpacing)'; % array element, [nRxAnts x 1]
-        aryDelay     = zeros(nRxAnts, nTargets);        % array delay, [nRxAnts x nTargets]
 
         for t = 1:nTargets
-            aryDelay(:,t)  = rxAntAry.*sind(azi(t))./c;
-            steeringVec{t} = exp(2j.*pi.*fc.*aryDelay(:,t)); % array steering vector, [nRxAnts x 1]
+            aryDelay       = rxAntAry.*sind(azi(t))./c; % array delay, [nRxAnts x 1]
+            steeringVec{t} = exp(2j.*pi.*fc.*aryDelay); % array steering vector, [nRxAnts x 1]
         end
 
     end
