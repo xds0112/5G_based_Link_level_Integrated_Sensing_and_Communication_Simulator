@@ -104,7 +104,7 @@ function [gNBEstResults, gNBEstRMSE, gNBComResults] = isacSimulation(simuParams)
         if strcmp(gNB.estAlgorithm, 'FFT')
             gNBEstResults = sensing.estimation.fft2D(rdrEstParams, cfar, radarRxGrid, radarTxGrid);
         elseif strcmp(gNB.estAlgorithm, 'MUSIC')
-            gNBEstResults = sensing.estimation.music(rdrEstParams, gNB, radarRxGrid, radarTxGrid);
+            gNBEstResults = sensing.estimation.music2D(rdrEstParams, gNB, radarRxGrid, radarTxGrid);
         end
     end
     
