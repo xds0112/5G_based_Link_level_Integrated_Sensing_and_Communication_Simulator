@@ -113,10 +113,13 @@ function radarEstParams = radarParams(nSlots, carrier, waveInfo, bsParams, topoP
     end
 
     steeringVec = cat(2,steeringVec{:}); % [nRxAnts x nTargets]
-
-    radarEstParams.scanScale       = 120; % scan scale, normally set to 120°, meaning [-60°, 60°]
-    radarEstParams.scanGranularity = .5;  % scan granularity, in degrees
-    radarEstParams.RxSteeringVec   = steeringVec;
+    
+    radarEstParams.antennaType              = txArray; % antenna array type
+    radarEstParams.azimuthScanScale         = 120;     % azimuth scan scale, normally set to 120°, meaning [-60°, 60°]
+    radarEstParams.elevationScanScale       = 180;     % elevation scan scale, normally set to 180°, meaning [-90°, 90°]
+    radarEstParams.azimuthScanGranularity   = .5;      % azimuth scan granularity, in degrees
+    radarEstParams.elevationScanGranularity = .5;      % elevation scan granularity, in degrees
+    radarEstParams.RxSteeringVec            = steeringVec;
 
     %% Restore Targets' Real Position Configuration
     % CFAR detection zone
