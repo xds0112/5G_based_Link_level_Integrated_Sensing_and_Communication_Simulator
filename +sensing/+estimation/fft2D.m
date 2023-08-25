@@ -45,6 +45,12 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     estResults = struct;
 
     %% DoA Estimation
+    % Antenna array type
+    if isa(bsParams.txArray, 'phased.NRRectangularPanelArray') % UPA model is not supported yet
+        disp('Beamforming algorithm is not supported for the UPA model yet')
+        return
+    end
+
     % Array correlation matrix
     rxGridReshaped = reshape(rxGrid, nSc*nSym, nAnts)'; % [nAnts x nSc*nSym]
     Ra = rxGridReshaped*rxGridReshaped'./(nSc*nSym);    % [nAnts x nAnts]
