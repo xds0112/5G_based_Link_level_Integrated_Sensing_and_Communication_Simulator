@@ -39,7 +39,7 @@ function [numTgtsEst, aziEst] = music(radarEstParams, Ra)
     % Assignment
     [~, azi] = findpeaks(PmusicdB, 'MinPeakHeight', -5, 'SortStr', 'descend');
     aziEst = (azi-1)*scanGranularity-aMax/2;
-    numTgtsEst = L; % number of targets estimated
+    numTgtsEst = L; % number of estimated targets
 
     % Plot
     plotAngularSpectrum
