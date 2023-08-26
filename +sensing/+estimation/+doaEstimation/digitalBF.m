@@ -95,10 +95,9 @@ function [aziEst, eleEst] = digitalBF(radarEstParams, Ra)
         eleGrid = linspace(-eMax/2, eMax/2, eSteps); % [-eMax/2, eMax/2]
 
         % plot DoA spectrum 
-        mesh(aziGrid, eleGrid, PdbfdB, 'LineWidth', 1)
+        imagesc(aziGrid, eleGrid, PdbfdB)
 
         title('DoA Estimation using Digital Beamforming Method')
-        zlabel('Angular Spectrum (dB)')
         ylabel('Elevation (°)')
         xlabel('Azimuth (°)')
         ylim([-eMax/2 eMax/2])
