@@ -90,7 +90,7 @@ function estResults = music2D(rdrEstParams, bsParams, rxGrid, txGrid)
 
     % Range and Doppler steering vector
     rSteeringVec = @(r, n)exp(-2j*pi*scs*2*r*n/c);
-    vSteeringVec = @(v, m)exp(-2j*pi*T*2*v*m/lambda);
+    vSteeringVec = @(v, m)exp(2j*pi*T*2*v*m/lambda);
     nn = (0:1:nSc-1)';
     mm = (0:1:nSym-1)';
 
