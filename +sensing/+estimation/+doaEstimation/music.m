@@ -130,10 +130,9 @@ function [numTgtsEst, aziEst, eleEst] = music(radarEstParams, Ra)
         eleGrid = linspace(-eMax/2, eMax/2, eSteps); % [-eMax/2, eMax/2]
 
         % plot DoA spectrum 
-        mesh(aziGrid, eleGrid, PmusicdB, 'LineWidth', 1)
+        imagesc(aziGrid, eleGrid, PmusicdB)
 
         title('DoA Estimation using MUSIC Method')
-        zlabel('Angular Spectrum (dB)')
         ylabel('Elevation (°)')
         xlabel('Azimuth (°)')
         ylim([-eMax/2 eMax/2])
