@@ -1,4 +1,4 @@
-function [gNBEstResults, gNBEstRMSEs, gNBComResults] = isacSimulation(simuParams)
+function [gNBEstRMSEs, gNBComResults] = isacSimulation(simuParams)
 %% Single gNB-based ISAC Transceiver Simulation
 
 % Author: D.S Xue, Key Laboratory of Universal Wireless Communications,
