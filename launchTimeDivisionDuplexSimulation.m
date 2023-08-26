@@ -10,7 +10,7 @@ clc; close all; clear;
 simuParams = scenarios.scenarioTimeDivisionDuplex();
 
 % Invoke the ISAC simulator
-[senResults, senRMSE, comResults] = simulation.isacSimulation(simuParams);
+[senRMSEs, comResults] = simulation.isacSimulation(simuParams);
 
 % Plot topology
 networkTopology.plotTopology(simuParams.bsParams, senResults)
