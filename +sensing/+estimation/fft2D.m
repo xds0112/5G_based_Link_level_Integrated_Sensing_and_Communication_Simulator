@@ -49,8 +49,8 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     rxGridReshaped = reshape(rxGrid, nSc*nSym, nAnts)'; % [nAnts x nSc*nSym]
     Ra = rxGridReshaped*rxGridReshaped'./(nSc*nSym);    % [nAnts x nAnts]
 
-    % DBF method
-    [aziEst, eleEst] = sensing.estimation.doaEstimation.digitalBF(radarEstParams, Ra);
+    % MVDR method
+    [aziEst, eleEst] = sensing.estimation.doaEstimation.mvdrBF(radarEstParams, Ra);
 
     % Assignment
     estResults.aziEst = aziEst;
