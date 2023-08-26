@@ -88,16 +88,22 @@ function estResults = music2D(rdrEstParams, bsParams, rxGrid, txGrid)
     Uvn      = Uv(:,L+1:end);
     Uvnn     = Uvn*Uvn';
 
+    % Range and Doppler steering vector
+    rSteeringVec = @(r, n)exp(-2j*pi*scs*2*r*n/c);
+    vSteeringVec = @(v, m)exp(-2j*pi*T*2*v*m/lambda);
+    nn = (0:1:nSc-1)';
+    mm = (0:1:nSym-1)';
+
     % Range and Doppler spectra
     for r = 1:rSteps
         searchRange = (r-1)*rGranularity;
-        ar          = exp(-2j.*pi.*scs.*2.*searchRange.*(0:1:nSc-1)./c).';  % range steering vector
+        ar          = rSteeringVec(searchRange, nn);
         Prmusic(r)  = 1./(ar'*Urnn*ar);
     end
 
     for v = 1:vSteps
         searchVelocity = (v-1)*vGranularity-vMax/2;
-        av             = exp(2j.*pi.*T.*2.*searchVelocity.*(0:1:nSym-1)./lambda).';  % velocity steering vector
+        av             = vSteeringVec(searchVelocity, mm);
         Pvmusic(v)     = 1./(av'*Uvnn*av);
     end
     
