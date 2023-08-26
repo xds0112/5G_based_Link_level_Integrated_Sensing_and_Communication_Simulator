@@ -50,10 +50,11 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     Ra = rxGridReshaped*rxGridReshaped'./(nSc*nSym);    % [nAnts x nAnts]
 
     % DBF method
-    aziEst = sensing.estimation.doaEstimation.digitalBF(radarEstParams, Ra);
+    [aziEst, eleEst] = sensing.estimation.doaEstimation.digitalBF(radarEstParams, Ra);
 
     % Assignment
     estResults.aziEst = aziEst;
+    estResults.eleEst = eleEst;
 
     %% 2D-FFT Algorithm
     % Simulation params initialization
@@ -107,8 +108,6 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
          end
     end
 
-    estResults = getUniqueStruct(estResults);
-
     %% Plot Results
     % plot 2D-RDM (1st Rx antenna array element)
     plotRDM(1)
@@ -152,14 +151,6 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
                 rngWin = repmat(hamming(nSc), [1 nSym]);
                 dopWin = repmat(hamming(nIFFT), [1 nSym]);
         end
-    end
-
-    function uniqueStruct = getUniqueStruct(myStruct)
-        % Delete duplicated elements in the struct
-
-        [~, uniqueIndices] = unique(struct2table(myStruct), 'stable', 'rows');
-        uniqueStruct = myStruct(uniqueIndices);
-
     end
 
     function filteredData = filterOutliers(data)
