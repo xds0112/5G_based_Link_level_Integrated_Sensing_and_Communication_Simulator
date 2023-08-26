@@ -11,6 +11,3 @@ simuParams = scenarios.scenarioTimeDivisionDuplex();
 
 % Invoke the ISAC simulator
 [senRMSEs, comResults] = simulation.isacSimulation(simuParams);
-
-% Plot topology
-networkTopology.plotTopology(simuParams.bsParams, senResults)
