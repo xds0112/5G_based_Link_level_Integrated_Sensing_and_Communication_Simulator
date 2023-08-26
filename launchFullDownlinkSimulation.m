@@ -40,3 +40,6 @@ rdrRxGrid        = sensing.monoStaticSensing(rdrTxGrid, carrier, waveInfo, bsPar
 estResults.FFT   = sensing.estimation.fft2D(rdrEstParams, cfar, rdrRxGrid, rdrTxGrid);
 estResults.MUSIC = sensing.estimation.music2D(rdrEstParams, bsParams, rdrRxGrid, rdrTxGrid);
 
+% Plot topology
+networkTopology.plotTopology(bsParams, estResults.MUSIC)
+
