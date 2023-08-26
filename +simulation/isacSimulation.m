@@ -1,5 +1,5 @@
-function [gNBEstResults, gNBComResults] = isacSimulation(simuParams)
-%% Single gNB-based ISAC transceiver simulation
+function [gNBEstResults, gNBEstRMSEs, gNBComResults] = isacSimulation(simuParams)
+%% Single gNB-based ISAC Transceiver Simulation
 
 % Author: D.S Xue, Key Laboratory of Universal Wireless Communications,
 % Ministry of Education, BUPT.
@@ -44,7 +44,7 @@ function [gNBEstResults, gNBComResults] = isacSimulation(simuParams)
     % Radar estimation parameters
     rdrEstParams = sensing.preProcessing.radarParams(nSlots, carrier, waveInfo, gNB, topoParams);
     cfar         = sensing.detection.cfarConfig(rdrEstParams);
-    [gNBEstResults, gNBComResults] = deal(NaN);
+    [gNBEstResults, gNBEstRMSEs, gNBComResults] = deal(NaN);
     
     %% Simulation Loop
     for iSlot = 0:nSlots-1
@@ -106,6 +106,9 @@ function [gNBEstResults, gNBComResults] = isacSimulation(simuParams)
         elseif strcmp(gNB.estAlgorithm, 'MUSIC')
             gNBEstResults = sensing.estimation.music2D(rdrEstParams, gNB, radarRxGrid, radarTxGrid);
         end
+
+        % Get estimation RMSEs
+        gNBEstRMSEs = sensing.postProcessing.getRMSE(gNBEstResults, rdrEstParams);
     end
     
 end
