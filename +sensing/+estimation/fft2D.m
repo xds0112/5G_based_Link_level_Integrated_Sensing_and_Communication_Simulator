@@ -71,10 +71,10 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     [rngWin, dopWin] = selectWindow('kaiser');
 
     % Generate windowed RDM
-    chlInfoWindowed = channelInfo.*rngWin;                                     % Apply window to the channel info matrix
-    rngIFFT         = ifftshift(ifft(chlInfoWindowed, nIFFT, 1).*sqrt(nIFFT)); % IDFT per columns, [nIFFT x nSym x nAnts]
-    rngIFFTWindowed = rngIFFT.*dopWin;                                         % Apply window to the ranging matrix
-    rdm             = fftshift(fft(rngIFFTWindowed, nFFT, 2)./sqrt(nFFT));     % DFT per rows, [nIFFT x nFFT x nAnts]
+    chlInfo = channelInfo.*rngWin;                             % apply window to the channel info matrix
+    rngIFFT = ifftshift(ifft(chlInfo, nIFFT, 1).*sqrt(nIFFT)); % IDFT per columns, [nIFFT x nSym x nAnts]
+    rngIFFT = rngIFFT.*dopWin;                                 % apply window to the ranging matrix
+    rdm     = fftshift(fft(rngIFFT, nFFT, 2)./sqrt(nFFT));     % DFT per rows, [nIFFT x nFFT x nAnts]
 
     % Range and velocity estimation
     for r = 1:nAnts
@@ -130,14 +130,14 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
                 rngWin = repmat(blackman(nSc), [1 nSym]);
                 dopWin = repmat(blackman(nIFFT), [1 nSym]);
             case 'kaiser'       % Kaiser window
-                rngWin = repmat(kaiser(nSc, .3), [1 nSym]);
-                dopWin = repmat(kaiser(nIFFT, .3), [1 nSym]);
+                rngWin = repmat(kaiser(nSc, 3), [1 nSym]);
+                dopWin = repmat(kaiser(nIFFT, 3), [1 nSym]);
             case 'taylorwin'    % Taylor window
                 rngWin = repmat(taylorwin(nSc, 4, -30), [1 nSym]);
                 dopWin = repmat(taylorwin(nIFFT, 4, -30), [1 nSym]);
             case 'chebwin'      % Chebyshev window
-                rngWin = repmat(chebwin(nSc, 100), [1 nSym]);
-                dopWin = repmat(chebwin(nIFFT, 100), [1 nSym]);
+                rngWin = repmat(chebwin(nSc, 50), [1 nSym]);
+                dopWin = repmat(chebwin(nIFFT, 50), [1 nSym]);
             case 'barthannwin'  % Modified Bartlett-Hann window
                 rngWin = repmat(barthannwin(nSc), [1 nSym]);
                 dopWin = repmat(barthannwin(nIFFT), [1 nSym]);
@@ -173,14 +173,13 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
         rngGrid = ((0:nIFFT-1)*radarEstParams.rRes)';        % [0, nIFFT-1]*rRes
         dopGrid = ((-nFFT/2:nFFT/2-1)*radarEstParams.vRes)'; % [-nFFT/2, nFFT/2-1]*vRes
 
-        h = imagesc(dopGrid, rngGrid, mag2db(abs(rdm(:,:,aryIdx))));
+        rdmdB = mag2db(abs(rdm(:,:,aryIdx)));
+        h = imagesc(dopGrid, rngGrid, rdmdB);
         h.Parent.YDir = 'normal';
 
         title('Range-Doppler Map')
         xlabel('Radial Velocity (m/s)')
         ylabel('Range (m)')
-        ylim([rngMin rngMax])
-        xlim([velMin velMax])
 
     end
 
@@ -210,7 +209,7 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
         % plot Doppler/velocity spectrum 
         nexttile(2)    
         % DFT per rows, [nSc x nFFT x nAnts]
-        velFFTPlot = abs(fftshift(fft(chlInfoWindowed(fastTimeIdx, :, aryIdx), nFFT, 2)./sqrt(nFFT)));
+        velFFTPlot = abs(fftshift(fft(chlInfo(fastTimeIdx, :, aryIdx), nFFT, 2)./sqrt(nFFT)));
         velFFTNorm = velFFTPlot./max(velFFTPlot);
         velFFTdB   = mag2db(velFFTNorm);
         plot(dopGrid, velFFTdB, 'LineWidth', 1);
