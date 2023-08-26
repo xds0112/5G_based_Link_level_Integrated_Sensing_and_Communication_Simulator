@@ -81,7 +81,7 @@ function  plotTopology(bsParams, estResults)
         uePlot  = tools.plotScatter2D(uePos(1:2), 25, tools.colors.darkBlue);
         tgtPlot = tools.plotScatter2D(tgtPos(1:2), 25, tools.colors.darkGreen);
         for i = 1:size(estPos, 1)
-            estPlot = tools.plotScatter3D(estPos(i,:), 15, tools.colors.lightRed);
+            estPlot = tools.plotScatter2D(estPos(i,:), 15, tools.colors.lightRed);
         end
     
         legend([bsPlot, uePlot, tgtPlot, estPlot], {'Base Station' 'UEs' 'Targets' 'Estimated Targets'}, 'Location', 'best')
