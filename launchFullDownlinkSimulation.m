@@ -4,6 +4,9 @@
 %%
 clc; close all; clear;
 
+% Print copyright
+tools.printCopyright
+
 %% Launch simulation
 % Get simulation parameters
 simuParams = scenarios.scenarioFullDownlink();
