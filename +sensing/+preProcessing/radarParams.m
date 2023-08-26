@@ -76,49 +76,50 @@ function radarEstParams = radarParams(nSlots, carrier, waveInfo, bsParams, topoP
 
     % Antenna array orientation parameters
     txArray     = bsParams.txArray;
-    ele         = topoParams.elevationTgts;  % elevation angle of target,  [1 x nTargets]
-    azi         = topoParams.azimuthTgts;    % azimuth angle of target, [1 x nTargets]
-    steeringVec = cell(1, nTargets);         % steering vector, [1 x nTargets]
     nRxAnts     = nTxAnts;                   % Rx and Tx share the same antenna array
+    ele         = topoParams.elevationTgts;  % elevation angle of target (theta),  [1 x nTargets]
+    azi         = topoParams.azimuthTgts;    % azimuth angle of target (phi), [1 x nTargets]
+    steeringVec = cell(1, nTargets);         % steering vector, [1 x nTargets]
     
     if isa(txArray, 'phased.NRRectangularPanelArray') % UPA model
 
-        rxArySpacingX = txArray.Spacing(1);                % array X-axis element spacing
-        rxArySpacingY = txArray.Spacing(2);                % array Y-axis element spacing
-        nRxAntsX      = txArray.Size(1);                   % array X-axis element number
-        nRxAntsY      = txArray.Size(2);                   % array Y-axis element number
-        rxAntAryX     = ((0:1:nRxAntsX-1)*rxArySpacingX)'; % array X-axis element indices, [nRxAntsX x 1]
-        rxAntAryY     = ((0:1:nRxAntsY-1)*rxArySpacingY)'; % array Y-axis element indices, [nRxAntsY x 1]
+        spacingX = txArray.Spacing(1);         % array X-axis element spacing
+        spacingY = txArray.Spacing(2);         % array Y-axis element spacing
+        nAntsX   = txArray.Size(1);            % array X-axis element number
+        nAntsY   = txArray.Size(2);            % array Y-axis element number
+        antAryX  = (0:1:nAntsX-1)*spacingX;    % array X-axis element indices, [1 x nRxAntsX]
+        antAryY  = ((0:1:nAntsY-1)*spacingY)'; % array Y-axis element indices, [nRxAntsY x 1]
+
+        % UPA steering vector, defined in the spheric coordinate system
+        aUPA = @(ph, th, m, n)exp(2j*pi*sind(th)*(m*cosd(ph) + n*sind(ph))/lambda);
         
-        % UPA steering vector is defined in the spheric coordinate system
         for t = 1:nTargets
-            aryDelayX      = rxAntAryX.*sind(azi(t)).*sind(ele(t))./c;   % array X-axis time delay, [nRxAntsX x 1]
-            aryDelayY      = rxAntAryY.*cosd(azi(t)).*sind(ele(t))./c;   % array Y-axis time delay, [nRxAntsY x 1]
-            steeringVecX   = exp(2j.*pi.*fc.*aryDelayX);                 % array X-axis steering vector, [nRxAntsX x 1]
-            steeringVecY   = exp(2j.*pi.*fc.*aryDelayY);                 % array Y-axis steering vector, [nRxAntsY x 1]
-            steeringMat    = kron(steeringVecX, steeringVecY);           % array steering matrix, [nRxAntsX x nRxAntsY]
-            steeringVec{t} = reshape(steeringMat, nRxAntsX*nRxAntsY, 1); % array steering vector, [nRxAnts x 1]
+            upaSteeringVec = aUPA(azi(t), ele(t), antAryX, antAryY);
+            steeringVec{t} = reshape(upaSteeringVec, nRxAnts, 1);
         end
     
     else  % ULA model
 
-        rxArySpacing = txArray.ElementSpacing;          % array element spacing
-        rxAntAry     = ((0:1:nRxAnts-1)*rxArySpacing)'; % array element, [nRxAnts x 1]
+        spacing = txArray.ElementSpacing;     % array element spacing
+        antAry  = ((0:1:nRxAnts-1)*spacing)'; % array element, [nRxAnts x 1]
+
+        % ULA steering vector
+        aULA = @(ph, m)exp(2j*pi*m*sind(ph)/lambda);
 
         for t = 1:nTargets
-            aryDelay       = rxAntAry.*sind(azi(t))./c; % array delay, [nRxAnts x 1]
-            steeringVec{t} = exp(2j.*pi.*fc.*aryDelay); % array steering vector, [nRxAnts x 1]
+            ulaSteeringVec = aULA(azi(t), antAry);
+            steeringVec{t} = ulaSteeringVec;
         end
 
     end
 
-    steeringVec = cat(2,steeringVec{:}); % [nRxAnts x nTargets]
-    
-    radarEstParams.antennaType              = txArray; % antenna array type
-    radarEstParams.azimuthScanScale         = 120;     % azimuth scan scale, normally set to 120°, meaning [-60°, 60°]
-    radarEstParams.elevationScanScale       = 180;     % elevation scan scale, normally set to 180°, meaning [-90°, 90°]
-    radarEstParams.azimuthScanGranularity   = .5;      % azimuth scan granularity, in degrees
-    radarEstParams.elevationScanGranularity = .5;      % elevation scan granularity, in degrees
+    steeringVec = cat(2, steeringVec{:}); % [nRxAnts x nTargets]
+
+    radarEstParams.antennaType              = txArray;    % antenna array type
+    radarEstParams.azimuthScanScale         = 120;        % azimuth scan scale, normally set to 120°, meaning [-60°, 60°]
+    radarEstParams.elevationScanScale       = 180;        % elevation scan scale, normally set to 180°, meaning [-90°, 90°]
+    radarEstParams.azimuthScanGranularity   = 1;          % azimuth scan granularity, in degrees
+    radarEstParams.elevationScanGranularity = 1;          % elevation scan granularity, in degrees
     radarEstParams.RxSteeringVec            = steeringVec;
 
     %% Restore Targets' Real Position Configuration
