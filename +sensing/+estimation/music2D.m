@@ -59,8 +59,8 @@ function estResults = music2D(rdrEstParams, bsParams, rxGrid, txGrid)
 
     % MUSIC method
     [L, aziEst, eleEst] = sensing.estimation.doaEstimation.music(rdrEstParams, Ra);
-    estResults.azi = aziEst;
-    estResults.ele = eleEst;
+    estResults.aziEst = aziEst;
+    estResults.eleEst = eleEst;
 
     %% Range and Doppler Estimation
     % Element-wise multiplication
@@ -119,8 +119,8 @@ function estResults = music2D(rdrEstParams, bsParams, rxGrid, txGrid)
     % Assignment
     [~, rng] = findpeaks(PrmusicdB, 'MinPeakHeight', -1, 'SortStr', 'descend');
     [~, vel] = findpeaks(PvmusicdB, 'MinPeakHeight', -5, 'SortStr', 'descend');
-    estResults.rng = (rng-1)*rGranularity;
-    estResults.vel = (vel-1)*vGranularity-vMax/2;
+    estResults.rngEst = (rng-1)*rGranularity;
+    estResults.velEst = (vel-1)*vGranularity-vMax/2;
 
     %% Plots
     plotMUSICSpectra;
