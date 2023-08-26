@@ -53,12 +53,6 @@ function estResults = music2D(rdrEstParams, bsParams, rxGrid, txGrid)
     estResults = struct;
 
     %% DoA Estimation
-    % Antenna array type
-    if isa(bsParams.txArray, 'phased.NRRectangularPanelArray') % UPA model is not supported yet
-        disp('MUSIC algorithm is not supported for the UPA model yet')
-        return
-    end
-
     % Array correlation matrix
     rxGridReshaped = reshape(rxGrid, nSc*nSym, nAnts)'; % [nAnts x nSc*nSym]
     Ra = rxGridReshaped*rxGridReshaped'./(nSc*nSym);    % [nAnts x nAnts]
@@ -84,24 +78,26 @@ function estResults = music2D(rdrEstParams, bsParams, rxGrid, txGrid)
     [~, Ir]  = sort(Vr, 'descend');
     Ur       = Ur(:,Ir);
     Urn      = Ur(:,L+1:end);
+    Urnn     = Urn*Urn';
 
     [Uv, Sv] = eig(Rv);
     Vv       = real(diag(Sv));
     [~, Iv]  = sort(Vv, 'descend');
     Uv       = Uv(:,Iv);
     Uvn      = Uv(:,L+1:end);
+    Uvnn     = Uvn*Uvn';
 
     % Range and Doppler spectra
     for r = 1:rSteps
         searchRange = (r-1)*rGranularity;
         ar          = exp(-2j.*pi.*scs.*2.*searchRange.*(0:1:nSc-1)./c).';  % range steering vector
-        Prmusic(r)  = 1./((ar'*Urn)*(Urn'*ar));
+        Prmusic(r)  = 1./(ar'*Urnn*ar);
     end
 
     for v = 1:vSteps
         searchVelocity = (v-1)*vGranularity-vMax/2;
         av             = exp(2j.*pi.*T.*2.*searchVelocity.*(0:1:nSym-1)./lambda).';  % velocity steering vector
-        Pvmusic(v)     = 1./((av'*Uvn)*(Uvn'*av));
+        Pvmusic(v)     = 1./(av'*Uvnn*av);
     end
     
     % Normalization
