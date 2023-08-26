@@ -33,7 +33,7 @@ function [aziEst, eleEst] = mvdrBF(radarEstParams, Ra)
                 scanAzimuth   = (a-1)*aGranularity - aMax/2;
                 aa = aUPA(scanAzimuth, scanElevation, mm, nn);
                 aa = reshape(aa, nAntsX*nAntsY, 1);
-                Pmvdr(e,a) = aa'*Ra*aa;
+                Pmvdr(e,a) = 1./(aa'*Ra^-1*aa);
             end
         end
         
@@ -68,7 +68,7 @@ function [aziEst, eleEst] = mvdrBF(radarEstParams, Ra)
         for a = 1:aSteps
             scanAngle = (a-1)*scanGranularity - aMax/2;
             aa        = aULA(scanAngle, nn);
-            Pmvdr(a)  = aa'*Ra*aa;
+            Pmvdr(a)  = 1./(aa'*Ra^-1*aa);
         end
         
         % Normalization
