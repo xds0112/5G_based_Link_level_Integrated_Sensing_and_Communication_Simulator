@@ -58,8 +58,9 @@ function estResults = music2D(rdrEstParams, bsParams, rxGrid, txGrid)
     Ra = rxGridReshaped*rxGridReshaped'./(nSc*nSym);    % [nAnts x nAnts]
 
     % MUSIC method
-    [L, aziEst] = sensing.estimation.doaEstimation.music(rdrEstParams, Ra);
+    [L, aziEst, eleEst] = sensing.estimation.doaEstimation.music(rdrEstParams, Ra);
     estResults.azi = aziEst;
+    estResults.ele = eleEst;
 
     %% Range and Doppler Estimation
     % Element-wise multiplication
