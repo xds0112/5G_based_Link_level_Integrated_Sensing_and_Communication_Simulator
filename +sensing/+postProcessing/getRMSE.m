@@ -1,10 +1,10 @@
 function radarEstRMSE = getRMSE(radarEstResults, radarEstParams)
-% Calculate RMSE of Radar Estimation Results
+% Calculate the root mean squre error (RMSE) of estimation results
 
 % Author: D.S Xue, Key Laboratory of Universal Wireless Communications,
 % Ministry of Education, BUPT.
 
-   %%
+   %% Params
    % The estimation result is seen as a non-detection
    % when the corresponding error exceeds the threshold value.
    rngDetThreshold = radarEstParams.rRes;
@@ -12,37 +12,37 @@ function radarEstRMSE = getRMSE(radarEstResults, radarEstParams)
 
    isUPA = 0; 
    % antenna array type
-   if isfield(radarEstResults,'eleEst') % UPA
+   if isa(radarEstParams.antennaType, 'phased.NRRectangularPanelArray') % UPA
        isUPA = 1;
    end
 
-   %%
+   %% Calculate errors
    % real & estimated values
-        rngReal = extractfield(radarEstParams.tgtRealPos,'Range')';
-        velReal = extractfield(radarEstParams.tgtRealPos,'Velocity')';
-        eleReal = extractfield(radarEstParams.tgtRealPos,'Elevation')';
-        aziReal = extractfield(radarEstParams.tgtRealPos,'Azimuth')';
+        rngReal = extractfield(radarEstParams.tgtRealPos, 'Range')';
+        velReal = extractfield(radarEstParams.tgtRealPos, 'Velocity')';
+        eleReal = extractfield(radarEstParams.tgtRealPos, 'Elevation')';
+        aziReal = extractfield(radarEstParams.tgtRealPos, 'Azimuth')';
 
-        rngEst = extractfield(radarEstResults,'rngEst');
-        velEst = extractfield(radarEstResults,'velEst');
+        rngEst = extractfield(radarEstResults, 'rngEst');
+        velEst = extractfield(radarEstResults, 'velEst');
         if isUPA
-            eleEst = extractfield(radarEstResults,'eleEst');
-            aziEst = extractfield(radarEstResults,'aziEst');
+            eleEst = extractfield(radarEstResults, 'eleEst');
+            aziEst = extractfield(radarEstResults, 'aziEst');
         else
-            aziEst = extractfield(radarEstResults,'aziEst');
+            aziEst = extractfield(radarEstResults, 'aziEst');
         end
 
         if isempty(rngEst)
-            disp('No target is detected, please alter the CFAR configuration')
+            disp('No target is detected')
             radarEstRMSE = NaN;
             return
         else
             % error values
-            for r = 1:size(rngEst,1)
+            for r = 1:size(rngEst, 1)
 
                 detIdx = find(abs(rngReal - rngEst(r)) < rngDetThreshold);
 
-                if size(detIdx,1) == 1 % rng detection matches
+                if size(detIdx, 1) == 1 % rng detection matches
                     rError(r) = rngReal(detIdx) - rngEst(r);
                     vError(r) = velReal(detIdx) - velEst(r);
                     if isUPA
@@ -66,39 +66,40 @@ function radarEstRMSE = getRMSE(radarEstResults, radarEstParams)
                             aziError(r) = aziReal(detIdx(newIdx)) - aziEst(r);
                         end 
                     else
-                        [rError(r),vError(r),eleError(r),aziError(r)] = deal(NaN);
+                        [rError(r), vError(r), eleError(r), aziError(r)] = deal(NaN);
                     end
 
                 else % rng & vel detection fail to match
                 
-                    [rError(r),vError(r),eleError(r),aziError(r)] = deal(NaN);
+                    [rError(r), vError(r), eleError(r), aziError(r)] = deal(NaN);
 
                 end
             end
         end
 
-   %% RMSE
+   %% Calculate RMSEs
    radarEstRMSE = struct;
 
-   % empty non-detections
+   % Empty non-detections
    if isUPA
-       [rError,vError,eleError,aziError] = ...
-          deal(rmmissing(rError),rmmissing(vError),rmmissing(eleError),rmmissing(aziError)); 
+       [rError, vError, eleError, aziError] = ...
+          deal(rmmissing(rError), rmmissing(vError), rmmissing(eleError), rmmissing(aziError)); 
    else
-       [rError,vError,aziError] = ...
-          deal(rmmissing(rError),rmmissing(vError),rmmissing(aziError)); 
+       [rError, vError, aziError] = ...
+          deal(rmmissing(rError), rmmissing(vError), rmmissing(aziError)); 
    end
 
-   % RMSE calculation
+   % RMSEs calculation
    for i = 1:length(rError)
 
-       radarEstRMSE(i).rRMSE = sqrt(sum(rError(i,:).^2)/size(rError(i,:),1));
-       radarEstRMSE(i).vRMSE = sqrt(sum(vError(i,:).^2)/size(vError(i,:),1));
+       radarEstRMSE(i).rngRMSE = sqrt(sum(rError(i,:).^2)/size(rError(i,:), 1));
+       radarEstRMSE(i).velRMSE = sqrt(sum(vError(i,:).^2)/size(vError(i,:), 1));
+
        if isUPA % UPA
-          radarEstRMSE(i).eleRMSE = sqrt(sum(eleError(i,:).^2)/size(eleError(i,:),1));
-          radarEstRMSE(i).aziRMSE = sqrt(sum(aziError(i,:).^2)/size(aziError(i,:),1));
+          radarEstRMSE(i).eleRMSE = sqrt(sum(eleError(i,:).^2)/size(eleError(i,:), 1));
+          radarEstRMSE(i).aziRMSE = sqrt(sum(aziError(i,:).^2)/size(aziError(i,:), 1));
        else % ULA
-          radarEstRMSE(i).doaRMSE = sqrt(sum(aziError(i,:).^2)/size(aziError(i,:),1));
+          radarEstRMSE(i).aziRMSE = sqrt(sum(aziError(i,:).^2)/size(aziError(i,:), 1));
        end
 
    end
