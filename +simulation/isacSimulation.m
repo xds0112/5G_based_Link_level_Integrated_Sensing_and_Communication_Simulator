@@ -109,6 +109,9 @@ function [gNBEstRMSEs, gNBComResults] = isacSimulation(simuParams)
 
         % Get estimation RMSEs
         gNBEstRMSEs = sensing.postProcessing.getRMSE(gNBEstResults, rdrEstParams);
+
+         % Plot topology
+        networkTopology.plotTopology(gNB, gNBEstResults)
     end
     
 end
