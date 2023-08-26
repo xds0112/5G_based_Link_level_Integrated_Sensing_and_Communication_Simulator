@@ -4,6 +4,8 @@
 %%
 clc; close all; clear;
 
+% Print copyright
+tools.printCopyright
 
 %% Launch Simulation
 % Get simulation parameters
