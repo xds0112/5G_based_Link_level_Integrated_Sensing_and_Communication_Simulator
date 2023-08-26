@@ -96,7 +96,7 @@ function [aziEst, eleEst] = mvdrBF(radarEstParams, Ra)
         eleGrid = linspace(-eMax/2, eMax/2, eSteps); % [-eMax/2, eMax/2]
 
         % plot DoA spectrum 
-        imagesc(aziGrid, eleGrid, PmvdrdB, 'LineWidth', 1)
+        imagesc(aziGrid, eleGrid, PmvdrdB)
 
         title('DoA Estimation using MVDR Beamforming Method')
         ylabel('Elevation (°)')
