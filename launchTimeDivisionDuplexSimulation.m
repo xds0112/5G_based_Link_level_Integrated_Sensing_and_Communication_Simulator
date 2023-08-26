@@ -14,6 +14,3 @@ simuParams = scenarios.scenarioTimeDivisionDuplex();
 
 % Plot topology
 networkTopology.plotTopology(simuParams.bsParams, senResults)
-
-% Get estimation RMSEs
-senRMSE = sensing.postProcessing.getRMSE(estResults.MUSIC, rdrEstParams);
