@@ -5,7 +5,7 @@ function rxWaveform = basicRadarChannel(txWaveform, waveInfo, simParams, radarEs
 % Ministry of Education, BUPT.
 
     %% Communication Parameters
-    [txWaveLength,nTxAnts] = size(txWaveform);
+    [txWaveLength, nTxAnts] = size(txWaveform);
 
     % OFDM parameters
     c      = physconst('Lightspeed');
@@ -18,12 +18,11 @@ function rxWaveform = basicRadarChannel(txWaveform, waveInfo, simParams, radarEs
     nTargets = numel(simParams.attachedTgts);
 
     % Range parameters
-    pathDelay = 2*topoParams.rangeTgts.'/c;  % echo delay
-    % Symbol shift caused by echo path delay
-    symbolShift = ceil(pathDelay./Ts);
+    pathDelay = 2*topoParams.rangeTgts.'/c; % echo delay
+    symbolShift = ceil(pathDelay./Ts);      % echo symbol shift
 
     % Velocity parameters
-    fd = 2*topoParams.velocityTgts./lambda;  % echo doppler shift
+    fd = 2*topoParams.velocityTgts./lambda; % echo doppler shift
 
     %% Multi-Target Radar Propagation Channel
     % Send Tx signal
@@ -61,7 +60,7 @@ function rxWaveform = basicRadarChannel(txWaveform, waveInfo, simParams, radarEs
     end
 
     % Combine echoes
-    rxWaveform = sum(cat(3,rxEchoWave{:}),3); % [rxWaveLength x nRxAnts]
+    rxWaveform = sum(cat(3,rxEchoWave{:}), 3); % [rxWaveLength x nRxAnts]
 
     % Apply AWGN
     N0         = sqrt(radarEstParams.N0/2.0);
