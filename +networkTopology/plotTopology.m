@@ -57,13 +57,13 @@ function plotTopology(bsParams, estResults)
         gNBPlot = tools.plotScatter3D(bsPos, 50, tools.colors.darkRed);
         tools.plotSector(bsPos, -60, 60, tools.colors.darkGrey);
         for u = 1:size(uePos, 2)
-            uePlot = tools.plotScatter3D(uePos(:,u), 15, tools.colors.darkBlue);
+            uePlot = tools.plotScatter3D(uePos(:,u), 25, tools.colors.darkBlue);
         end
         for t = 1:size(tgtPos, 2)
-            tgtPlot = tools.plotScatter3D(tgtPos(:,t), 15, tools.colors.darkGreen);
+            tgtPlot = tools.plotScatter3D(tgtPos(:,t), 25, tools.colors.darkGreen);
         end
         for i = 1:size(estPos, 2)
-            estPlot = tools.plotScatter3D(estPos(:,i), 15, tools.colors.lightRed);
+            estPlot = tools.plotScatter3D(estPos(:,i), 10, tools.colors.lightRed);
         end
     
         legend([gNBPlot, uePlot, tgtPlot, estPlot], {'gNB' 'UEs' 'Targets' 'Estimated Targets'}, 'Location', 'best')
@@ -92,7 +92,7 @@ function plotTopology(bsParams, estResults)
             tgtPlot = tools.plotScatter2D(tgtPos(1:2,t), 25, tools.colors.darkGreen);
         end
         for i = 1:size(estPos, 2)
-            estPlot = tools.plotScatter2D(estPos(:,i), 15, tools.colors.lightRed);
+            estPlot = tools.plotScatter2D(estPos(:,i), 10, tools.colors.lightRed);
         end
     
         legend([gNBPlot, uePlot, tgtPlot, estPlot], {'gNB' 'UEs' 'Targets' 'Estimated Targets'}, 'Location', 'best')
