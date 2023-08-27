@@ -34,7 +34,7 @@ function  plotTopology(bsParams, estResults)
 
         % Convert to relative cartesian coordinates
         [x, y, z] = sph2cart(deg2rad(aziEst), deg2rad(eleEst), rngEst);
-        estPos = [x, y, z] + bsPos;
+        estPos = ([x, y, z] + bsPos)';
 
         % Plot
         plot3DTopology(bsPos, uePos, tgtPos, estPos)
@@ -42,7 +42,7 @@ function  plotTopology(bsParams, estResults)
     else % ULA model
 
         [x, y] = pol2cart(deg2rad(aziEst), rngEst);
-        estPos = [x, y] + bsPos(1:2);
+        estPos = ([x, y] + bsPos(1:2))';
 
         % Plot
         plot2DTopology(bsPos, uePos, tgtPos, estPos)
@@ -54,21 +54,25 @@ function  plotTopology(bsParams, estResults)
     function plot3DTopology(bsPos, uePos, tgtPos, estPos)
         figure('Name', '3D Simulation Topology')
 
-        bsPlot  = tools.plotScatter3D(bsPos, 50, tools.colors.darkRed);
-        uePlot  = tools.plotScatter3D(uePos, 15, tools.colors.darkBlue);
-        tgtPlot = tools.plotScatter3D(tgtPos, 15, tools.colors.darkGreen);
-        for i = 1:size(estPos, 1)
-            estPlot = tools.plotScatter3D(estPos(i,:), 15, tools.colors.lightRed);
+        gNBPlot = tools.plotScatter3D(bsPos, 50, tools.colors.darkRed);
+        for u = 1:size(uePos, 2)
+            uePlot = tools.plotScatter3D(uePos(:,u), 15, tools.colors.darkBlue);
+        end
+        for t = 1:size(tgtPos, 2)
+            tgtPlot = tools.plotScatter3D(tgtPos(:,t), 15, tools.colors.darkGreen);
+        end
+        for i = 1:size(estPos, 2)
+            estPlot = tools.plotScatter3D(estPos(:,i), 15, tools.colors.lightRed);
         end
     
-        legend([bsPlot, uePlot, tgtPlot, estPlot], {'Base Station' 'UEs' 'Targets' 'Estimated Targets'}, 'Location', 'best')
+        legend([gNBPlot, uePlot, tgtPlot, estPlot], {'gNB' 'UEs' 'Targets' 'Estimated Targets'}, 'Location', 'best')
     
         grid on
 
         xlabel('x axis (m)')
         ylabel('y axis (m)')
         zlabel('z axis (m)')
-        xlim([-500 500])
+        xlim([0 500])
         ylim([-500 500])
         zlim([0 100])
 
@@ -77,20 +81,26 @@ function  plotTopology(bsParams, estResults)
     function plot2DTopology(bsPos, uePos, tgtPos, estPos)
         figure('Name', '2D Simulation Topology')
 
-        bsPlot  = tools.plotScatter2D(bsPos(1:2), 50, tools.colors.darkRed);
-        uePlot  = tools.plotScatter2D(uePos(1:2), 25, tools.colors.darkBlue);
-        tgtPlot = tools.plotScatter2D(tgtPos(1:2), 25, tools.colors.darkGreen);
-        for i = 1:size(estPos, 1)
-            estPlot = tools.plotScatter2D(estPos(i,:), 15, tools.colors.lightRed);
+        gNBPlot = tools.plotScatter2D(bsPos(1:2), 50, tools.colors.darkRed);
+        tools.plotSector(bsPos, -60, 60, tools.colors.darkGrey);
+
+        for u = 1:size(uePos, 2)
+            uePlot  = tools.plotScatter2D(uePos(1:2,u), 25, tools.colors.darkBlue);
+        end
+        for t = 1:size(tgtPos, 2)
+            tgtPlot = tools.plotScatter2D(tgtPos(1:2,t), 25, tools.colors.darkGreen);
+        end
+        for i = 1:size(estPos, 2)
+            estPlot = tools.plotScatter2D(estPos(:,i), 15, tools.colors.lightRed);
         end
     
-        legend([bsPlot, uePlot, tgtPlot, estPlot], {'Base Station' 'UEs' 'Targets' 'Estimated Targets'}, 'Location', 'best')
+        legend([gNBPlot, uePlot, tgtPlot, estPlot], {'gNB' 'UEs' 'Targets' 'Estimated Targets'}, 'Location', 'best')
     
         grid on
 
         xlabel('x axis (m)')
         ylabel('y axis (m)')
-        xlim([-500 500])
+        xlim([0 500])
         ylim([-500 500])
 
     end
