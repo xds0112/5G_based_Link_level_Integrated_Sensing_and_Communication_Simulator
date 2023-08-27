@@ -1,4 +1,4 @@
-function  plotTopology(bsParams, estResults)
+function plotTopology(bsParams, estResults)
 %PLOTTOPOLOGY plot network topology
 %   plot the position of base station, UEs, and targets in the 3D layout
 
@@ -55,6 +55,7 @@ function  plotTopology(bsParams, estResults)
         figure('Name', '3D Simulation Topology')
 
         gNBPlot = tools.plotScatter3D(bsPos, 50, tools.colors.darkRed);
+        tools.plotSector(bsPos, -60, 60, tools.colors.darkGrey);
         for u = 1:size(uePos, 2)
             uePlot = tools.plotScatter3D(uePos(:,u), 15, tools.colors.darkBlue);
         end
