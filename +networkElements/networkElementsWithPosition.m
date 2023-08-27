@@ -12,13 +12,9 @@ classdef networkElementsWithPosition
     end
     
     methods
-        function obj = networkElementsWithPosition(ID,coordinates)
+        function obj = networkElementsWithPosition()
             %NETWORKELEMENTSWITHPOSITION 
             %  
-            if nargin > 0
-                obj.ID       = ID;
-                obj.position = coordinates;
-            end
         end
         
     end
