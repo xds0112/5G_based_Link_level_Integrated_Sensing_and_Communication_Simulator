@@ -45,13 +45,8 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
 
     % Assignment
     for i = 1:numDets
-        if ~isempty(aziEst) && ~isempty(eleEst)
-            estResults(i).aziEst = aziEst(i);
-            estResults(i).eleEst = eleEst(i);
-        else
-            estResults(i).aziEst = NaN;
-            estResults(i).eleEst = NaN;
-        end
+        estResults(i).aziEst = aziEst(i);
+        estResults(i).eleEst = eleEst(i);
     end
 
     %% 2D-FFT Algorithm
@@ -81,11 +76,14 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     nDetecions = size(detections, 2);
 
     % Restore estimation values
-    [rngEst, eleEst] = deal(zeros(1, nDetecions));
+    [rngEst, velEst, peaks] = deal(zeros(1, nDetecions));
 
     if ~isempty(detections)
 
         for i = 1:nDetecions
+
+            % Peak levels
+            peaks(i) = rdResponse(detections(1,i), detections(2,i), 1);
 
             % Detection indices
             rngIdx = detections(1,i)-1;
@@ -93,14 +91,19 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
 
             % Range and velocity estimation
             rngEst(i) = rngIdx.*radarEstParams.rRes;
-            eleEst(i) = velIdx.*radarEstParams.vRes;
- 
-            % Assignment
-            estResults(i).rngEst = rngEst(i);
-            estResults(i).velEst = eleEst(i);
+            velEst(i) = velIdx.*radarEstParams.vRes;
 
         end
 
+    end
+
+    % Sort estimations by descending order
+    [~, idx] = sort(peaks, 'descend');
+    [rngEst(:), velEst(:)] = deal(rngEst(idx), velEst(idx));
+    for i = 1:nDetecions
+        % Assignment
+        estResults(i).rngEst = rngEst(i);
+        estResults(i).velEst = velEst(i);
     end
 
     %% Plot Results
