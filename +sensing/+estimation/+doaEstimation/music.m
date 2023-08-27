@@ -97,7 +97,7 @@ function [numTgtsEst, aziEst, eleEst] = music(radarEstParams, Ra)
         % Assignment
         % Number of estimated targets
         numTgtsEst = L;
-        [~, azi] = findpeaks(PmusicdB, 'NPeaks', L, 'Threshold', thresh, 'SortStr', 'ascend');
+        [~, azi] = findpeaks(PmusicdB, 'NPeaks', numTgtsEst, 'Threshold', thresh, 'SortStr', 'ascend');
         aziEst = (azi-1)*scanGranularity-aMax/2;
         eleEst = NaN([1, numel(aziEst)]);
     
