@@ -24,6 +24,9 @@ function [numTgtsEst, aziEst, eleEst] = music(radarEstParams, Ra)
     % Number of estimated targets
     numTgtsEst = L;
 
+    % Threshhold for peak finding
+    thresh = npwgnthresh(radarEstParams.Pfa);
+
     if isa(array, 'phased.NRRectangularPanelArray') % UPA model
 
         % Array parameters
@@ -62,7 +65,7 @@ function [numTgtsEst, aziEst, eleEst] = music(radarEstParams, Ra)
         plot2DAngularSpectrum
     
         % Assignment
-        [~, idx] = findpeaks(PmusicdB(:), 'MinPeakHeight', 50, 'SortStr', 'descend');
+        [~, idx] = findpeaks(PmusicdB(:), 'NPeaks', L, 'Threshold', thresh, 'SortStr', 'descend');
         [ele, azi] = ind2sub(size(PmusicdB), idx);
         eleEst = (ele-1)*eGranularity-eMax/2;
         aziEst = (azi-1)*aGranularity-aMax/2;
@@ -93,9 +96,9 @@ function [numTgtsEst, aziEst, eleEst] = music(radarEstParams, Ra)
         PmusicdB   = mag2db(PmusicNorm);
     
         % Assignment
-        [~, azi] = findpeaks(PmusicdB, 'MinPeakHeight', -5, 'SortStr', 'descend');
+        [~, azi] = findpeaks(PmusicdB, 'NPeaks', L, 'Threshold', thresh, 'SortStr', 'ascend');
         aziEst = (azi-1)*scanGranularity-aMax/2;
-        eleEst = NaN;
+        eleEst = NaN([1, numel(aziEst)]);
     
         % Plot
         plotAngularSpectrum
