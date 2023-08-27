@@ -49,7 +49,7 @@ function [aziEst, eleEst] = mvdrBF(radarEstParams, Ra)
         plot2DAngularSpectrum
   
         % Assignment
-        [~, idx] = findpeaks(PmvdrdB(:), 'Threshold', thresh, 'SortStr', 'ascend');
+        [~, idx] = findpeaks(PmvdrdB(:), 'Threshold', thresh, 'SortStr', 'descend');
         [ele, azi] = ind2sub(size(PmvdrdB), idx);
         eleEst = (ele-1)*eGranularity-eMax/2;
         aziEst = (azi-1)*aGranularity-aMax/2;
@@ -83,7 +83,7 @@ function [aziEst, eleEst] = mvdrBF(radarEstParams, Ra)
         plotAngularSpectrum
         
         % DoA estimation
-        [~, aIdx] = findpeaks(PmvdrdB, 'Threshold', thresh, 'SortStr', 'ascend');
+        [~, aIdx] = findpeaks(PmvdrdB, 'Threshold', thresh, 'SortStr', 'descend');
         aziEst = (aIdx-1)*scanGranularity - aMax/2;
         eleEst = NaN;
 
