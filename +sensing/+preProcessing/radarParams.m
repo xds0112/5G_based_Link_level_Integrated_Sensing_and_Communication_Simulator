@@ -116,7 +116,7 @@ function radarEstParams = radarParams(nSlots, carrier, waveInfo, bsParams, topoP
     steeringVec = cat(2, steeringVec{:}); % [nRxAnts x nTargets]
 
     radarEstParams.antennaType              = txArray;  % antenna array type
-    radarEstParams.azimuthScanScale         = 360;      % azimuth scan scale, normally set to 120°, meaning [-180°, 180°]
+    radarEstParams.azimuthScanScale         = 120;      % azimuth scan scale, normally set to 120°, meaning [-60°, 60°]
     radarEstParams.elevationScanScale       = 180;      % elevation scan scale, normally set to 180°, meaning [-90°, 90°]
     radarEstParams.azimuthScanGranularity   = 1;        % azimuth scan granularity, in degrees
     radarEstParams.elevationScanGranularity = 1;        % elevation scan granularity, in degrees
