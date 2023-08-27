@@ -45,8 +45,13 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
 
     % Assignment
     for i = 1:numDets
-        estResults(i).aziEst = aziEst(i);
-        estResults(i).eleEst = eleEst(i);
+        if ~isempty(aziEst) && ~isempty(eleEst)
+            estResults(i).aziEst = aziEst(i);
+            estResults(i).eleEst = eleEst(i);
+        else
+            estResults(i).aziEst = NaN;
+            estResults(i).eleEst = NaN;
+        end
     end
 
     %% 2D-FFT Algorithm
