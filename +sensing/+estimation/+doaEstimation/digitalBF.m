@@ -8,6 +8,9 @@ function [aziEst, eleEst] = digitalBF(radarEstParams, Ra)
     array = radarEstParams.antennaType;
     d = .5;  % the ratio of element spacing to wavelength, normally set to 0.5
 
+    % Threshhold for peak finding
+    thresh = npwgnthresh(radarEstParams.Pfa);
+
     if isa(array, 'phased.NRRectangularPanelArray') % UPA model
 
         % Array parameters
@@ -46,7 +49,7 @@ function [aziEst, eleEst] = digitalBF(radarEstParams, Ra)
         plot2DAngularSpectrum
 
         % Assignment
-        [~, idx] = findpeaks(PdbfdB(:), 'MinPeakHeight', 10, 'SortStr', 'descend');
+        [~, idx] = findpeaks(PdbfdB(:), 'Threshold', thresh, 'SortStr', 'descend');
         [ele, azi] = ind2sub(size(PdbfdB), idx);
         eleEst = (ele-1)*eGranularity-eMax/2;
         aziEst = (azi-1)*aGranularity-aMax/2;
@@ -80,7 +83,7 @@ function [aziEst, eleEst] = digitalBF(radarEstParams, Ra)
         plotAngularSpectrum
         
         % DoA estimation
-        [~, aIdx] = findpeaks(PdbfdB, 'MinPeakHeight', -5, 'SortStr', 'descend');
+        [~, aIdx] = findpeaks(PdbfdB, 'Threshold', thresh, 'SortStr', 'descend');
         aziEst = (aIdx-1)*scanGranularity - aMax/2;
 
     end
