@@ -62,12 +62,12 @@ function [numTgtsEst, aziEst, eleEst] = music(radarEstParams, Ra)
         plot2DAngularSpectrum
     
         % Assignment
-        % Number of estimated targets
-        numTgtsEst = floor(sqrt(L));
-        [~, idx]   = findpeaks(PmusicdB(:), 'NPeaks', numTgtsEst, 'Threshold', thresh/5, 'SortStr', 'ascend');
+        [~, idx]   = findpeaks(PmusicdB(:), 'NPeaks', L, 'Threshold', thresh/5, 'SortStr', 'ascend');
         [ele, azi] = ind2sub(size(PmusicdB), idx);
         eleEst = (ele-1)*eGranularity-eMax/2;
         aziEst = (azi-1)*aGranularity-aMax/2;
+        % Number of estimated targets
+        numTgtsEst = numel(aziEst);
 
     else % ULA model
 
@@ -95,11 +95,11 @@ function [numTgtsEst, aziEst, eleEst] = music(radarEstParams, Ra)
         PmusicdB   = mag2db(PmusicNorm);
     
         % Assignment
-        % Number of estimated targets
-        numTgtsEst = L;
-        [~, azi] = findpeaks(PmusicdB, 'NPeaks', numTgtsEst, 'Threshold', thresh, 'SortStr', 'ascend');
+        [~, azi] = findpeaks(PmusicdB, 'NPeaks', L, 'Threshold', thresh, 'SortStr', 'ascend');
         aziEst = (azi-1)*scanGranularity-aMax/2;
-        eleEst = NaN([1, numel(aziEst)]);
+        % Number of estimated targets
+        numTgtsEst = numel(aziEst);
+        eleEst = NaN([1, numTgtsEst]);
     
         % Plot
         plotAngularSpectrum
