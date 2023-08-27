@@ -48,6 +48,9 @@ function estResults = music2D(rdrEstParams, bsParams, rxGrid, txGrid)
     Pvmusic      = zeros(1, vSteps);                  % velocity spectrum
     rngGrid      = linspace(0, rMax-1, rSteps);       % range grid for plotting
     velGrid      = linspace(-vMax/2, vMax/2, vSteps); % velocity grid for plotting
+
+    % Threshhold for peak finding
+    thresh = npwgnthresh(rdrEstParams.Pfa);
     
     % Estimated results
     estResults = struct;
@@ -59,8 +62,10 @@ function estResults = music2D(rdrEstParams, bsParams, rxGrid, txGrid)
 
     % MUSIC method
     [L, aziEst, eleEst] = sensing.estimation.doaEstimation.music(rdrEstParams, Ra);
-    estResults.aziEst = aziEst;
-    estResults.eleEst = eleEst;
+    for i = 1:L
+        estResults(i).aziEst = aziEst(i);
+        estResults(i).eleEst = eleEst(i);
+    end
 
     %% Range and Doppler Estimation
     % Element-wise multiplication
@@ -117,10 +122,12 @@ function estResults = music2D(rdrEstParams, bsParams, rxGrid, txGrid)
     PvmusicdB   = mag2db(PvmusicNorm);
     
     % Assignment
-    [~, rng] = findpeaks(PrmusicdB, 'MinPeakHeight', -1, 'SortStr', 'descend');
-    [~, vel] = findpeaks(PvmusicdB, 'MinPeakHeight', -5, 'SortStr', 'descend');
-    estResults.rngEst = (rng-1)*rGranularity;
-    estResults.velEst = (vel-1)*vGranularity-vMax/2;
+    [~, rng] = findpeaks(PrmusicdB, 'NPeaks', L, 'Threshold', thresh, 'SortStr', 'ascend');
+    [~, vel] = findpeaks(PvmusicdB, 'NPeaks', L, 'Threshold', thresh, 'SortStr', 'ascend');
+    for i = 1:L
+        estResults(i).rngEst = (rng(i)-1)*rGranularity;
+        estResults(i).velEst = (vel(i)-1)*vGranularity-vMax/2;
+    end
 
     %% Plots
     plotMUSICSpectra;
