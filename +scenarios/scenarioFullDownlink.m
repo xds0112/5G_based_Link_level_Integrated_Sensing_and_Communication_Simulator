@@ -30,14 +30,14 @@ function simuParams = scenarioFullDownlink()
     % Attached UEs
     ue(1) = networkElements.ue.basicUE();
     ue(1).ID       = 1;
-    ue(1).position = [100 100 1.5];  % in meters
+    ue(1).position = [100 0 1.5];  % in meters
     ueParams       = ue;
     
     % Attached targets
     tgt(1) = networkElements.target.basicTarget();
     tgt(1).ID       = 1;
     tgt(1).rcs      = 1;             % in meters^2
-    tgt(1).position = [100 0 1.5]; % in meters
+    tgt(1).position = [100 100 1.5]; % in meters
     tgt(1).velocity = 5;             % in meters per second
     tgt(2) = networkElements.target.basicTarget();
     tgt(2).ID       = 2;
