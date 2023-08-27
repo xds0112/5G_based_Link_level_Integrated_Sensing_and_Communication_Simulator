@@ -80,15 +80,6 @@ function radarEstRMSE = getRMSE(radarEstResults, radarEstParams)
    %% Calculate RMSEs
    radarEstRMSE = struct;
 
-   % Empty non-detections
-   if isUPA
-       [rError, vError, eleError, aziError] = ...
-          deal(rmmissing(rError), rmmissing(vError), rmmissing(eleError), rmmissing(aziError)); 
-   else
-       [rError, vError, aziError] = ...
-          deal(rmmissing(rError), rmmissing(vError), rmmissing(aziError)); 
-   end
-
    % RMSEs calculation
    for i = 1:length(rError)
 
