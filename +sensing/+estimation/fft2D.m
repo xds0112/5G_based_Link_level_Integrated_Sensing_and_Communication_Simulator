@@ -32,15 +32,6 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     nIFFT = radarEstParams.nIFFT;
     nFFT  = radarEstParams.nFFT;
 
-    % CFAR
-    cfarDetector = cfar.cfarDetector2D;
-    CUTIdx       = cfar.CUTIdx;
-    if ~strcmp(cfarDetector.OutputFormat,'Detection index')
-        cfarDetector.OutputFormat = 'Detection index';
-    end
-    [rngMin, rngMax] = deal(radarEstParams.cfarEstZone(1,1), radarEstParams.cfarEstZone(1,2));
-    [velMin, velMax] = deal(radarEstParams.cfarEstZone(2,1), radarEstParams.cfarEstZone(2,2));
-
     % Estimated results
     estResults = struct;
 
@@ -49,21 +40,16 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     rxGridReshaped = reshape(rxGrid, nSc*nSym, nAnts)'; % [nAnts x nSc*nSym]
     Ra = rxGridReshaped*rxGridReshaped'./(nSc*nSym);    % [nAnts x nAnts]
 
-    % MVDR method
-    [aziEst, eleEst] = sensing.estimation.doaEstimation.mvdrBF(radarEstParams, Ra);
+    % MUSIC method
+    [numDets, aziEst, eleEst] = sensing.estimation.doaEstimation.music(radarEstParams, Ra);
 
     % Assignment
-    estResults.aziEst = aziEst;
-    estResults.eleEst = eleEst;
+    for i = 1:numDets
+        estResults(i).aziEst = aziEst(i);
+        estResults(i).eleEst = eleEst(i);
+    end
 
     %% 2D-FFT Algorithm
-    % Simulation params initialization
-    detections = cell(nAnts, 1);
-
-    % Estimated results
-    rngEst = cell(nAnts, 1);
-    velEst = cell(nAnts, 1);
-
     % Element-wise multiplication
     channelInfo = bsxfun(@times, rxGrid, pagectranspose(pagetranspose(txGrid)));  % [nSc x nSym x nAnts]
 
@@ -77,35 +63,39 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     rdm     = fftshift(fft(rngIFFT, nFFT, 2)./sqrt(nFFT));     % DFT per rows, [nIFFT x nFFT x nAnts]
 
     % Range and velocity estimation
-    for r = 1:nAnts
-        % CFAR detection
-        detections{r} = cfarDetector(abs(rdm(:,:,r).^2), CUTIdx);
-        nDetecions = size(detections{r}, 2);
+    % CFAR detection
+    cfarDetector = cfar.cfarDetector2D;
+    CUTIdx       = cfar.CUTIdx;
+    if ~strcmp(cfarDetector.OutputFormat,'Detection index')
+        cfarDetector.OutputFormat = 'Detection index';
+    end
+    cfarDetector.NumDetections = numDets; % maximum number of detections to report
 
-        if ~isempty(detections{r})
+    rdResponse = abs(rdm(:,:,1)).^2;
+    detections = cfarDetector(rdResponse, CUTIdx);
+    nDetecions = size(detections, 2);
 
-            for i = 1:nDetecions
+    % Restore estimation values
+    [rngEst, eleEst] = deal(zeros(1, nDetecions));
 
-                % Detection indices
-                rngIdx = detections{r}(1,i)-1;
-                velIdx = detections{r}(2,i)-nFFT/2-1;
+    if ~isempty(detections)
 
-                % Range and velocity estimation
-                rngEst{r} = rngIdx.*radarEstParams.rRes;
-                velEst{r} = velIdx.*radarEstParams.vRes;
+        for i = 1:nDetecions
 
-                % Range and Doppler estimation values
-                % Remove outliers from estimation values
-                rngEstFiltered = filterOutliers(cat(2, rngEst{:}));
-                velEstFiltered = filterOutliers(cat(2, velEst{:}));
+            % Detection indices
+            rngIdx = detections(1,i)-1;
+            velIdx = detections(2,i)-nFFT/2-1;
 
-                % Assignment
-                estResults.rngEst = mean(rngEstFiltered, 2);
-                estResults.velEst = mean(velEstFiltered, 2);
+            % Range and velocity estimation
+            rngEst(i) = rngIdx.*radarEstParams.rRes;
+            eleEst(i) = velIdx.*radarEstParams.vRes;
+ 
+            % Assignment
+            estResults(i).rngEst = rngEst(i);
+            estResults(i).velEst = eleEst(i);
 
-            end
+        end
 
-         end
     end
 
     %% Plot Results
@@ -153,18 +143,6 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
         end
     end
 
-    function filteredData = filterOutliers(data)
-        % Calculate mean and standard deviation
-        meanValue = mean(data);
-        stdValue = std(data);
-    
-        % Define threshold: assume outliers are values beyond mean plus/minus 2 times the standard deviation
-        threshold = 2 * stdValue;
-    
-        % Filter out outliers based on the threshold
-        filteredData = data(abs(data - meanValue) <= threshold);
-    end
-
     function plotRDM(aryIdx)
     % plot 2D range-Doppler(velocity) map
         figure('Name','2D RDM')
@@ -203,7 +181,6 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
         plot(rngGrid, rngIFFTdB, 'LineWidth', 1);
         title('Range Estimation')
         xlabel('Range (m)')
-        xlim([rngMin rngMax])
         grid on
 
         % plot Doppler/velocity spectrum 
@@ -215,7 +192,6 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
         plot(dopGrid, velFFTdB, 'LineWidth', 1);
         title('Velocity(Doppler) Estimation')
         xlabel('Radial Velocity (m/s)')
-        xlim([velMin velMax])
         grid on
 
     end
