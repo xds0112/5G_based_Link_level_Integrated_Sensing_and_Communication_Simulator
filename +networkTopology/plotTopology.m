@@ -26,23 +26,33 @@ function plotTopology(bsParams, estResults)
     end
 
     % Estimated positions
-    aziEst = estResults.aziEst;
-    eleEst = estResults.eleEst;
-    rngEst = estResults.rngEst;
+    aziEst  = extractfield(estResults, 'aziEst');
+    eleEst  = extractfield(estResults, 'eleEst');
+    rngEst  = extractfield(estResults, 'rngEst');
+    numEsts = numel(estResults);
 
     if ~any(isnan(eleEst)) % UPA model
 
+        estPos  = zeros(3,numEsts);
+
         % Convert to relative cartesian coordinates
         [x, y, z] = sph2cart(deg2rad(aziEst), deg2rad(eleEst), rngEst);
-        estPos = ([x, y, z] + bsPos)';
+        for iEst = 1:numEsts
+            estPos(:,iEst) = ([x(iEst), y(iEst), z(iEst)] + bsPos)';
+        end
 
         % Plot
         plot3DTopology(bsPos, uePos, tgtPos, estPos)
 
     else % ULA model
 
+        estPos  = zeros(2,numEsts);
+
+        % Convert to relative cartesian coordinates
         [x, y] = pol2cart(deg2rad(aziEst), rngEst);
-        estPos = ([x, y] + bsPos(1:2))';
+        for iEst = 1:numEsts
+            estPos(:,iEst) = ([x(iEst), y(iEst)] + bsPos(1:2))';
+        end
 
         % Plot
         plot2DTopology(bsPos, uePos, tgtPos, estPos)
