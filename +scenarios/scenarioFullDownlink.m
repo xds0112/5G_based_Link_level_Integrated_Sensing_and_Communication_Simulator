@@ -16,14 +16,14 @@ function simuParams = scenarioFullDownlink()
     % Initialize bs
     bs = networkElements.baseStation.gNB;
     bs.ID               = 1;
-    bs.position         = [0 0 10];         % in meters
+    bs.position         = [0 0 30];         % in meters
     bs.txPower          = 46;               % in dBm
-    bs.carrierFrequency = 28.50e9;          % in Hz
+    bs.carrierFrequency = 3.50e9;           % in Hz
     bs.bandwidth        = 100;              % in MHz
     bs.scs              = 60;               % in kHz
     bs.tddPattern       = "D";              % full downlink
     bs.specialSlot      = [14 0 0];         % full downlink symbols
-    bs.antSize          = [8 8 1];          % antenna panel
+    bs.antSize          = [8 1 1];          % antenna panel
     bs.Pfa              = 1e-9;             % false alarm rate
     bs.cfarEstZone      = [50 500; -20 20]; % [a b; c d], a to b m, c to d m/s
     
@@ -36,9 +36,14 @@ function simuParams = scenarioFullDownlink()
     % Attached targets
     tgt(1) = networkElements.target.basicTarget();
     tgt(1).ID       = 1;
-    tgt(1).position = [100 100 1.5];  % in meters
-    tgt(1).rcs      = 1;              % in meters^2
-    tgt(1).velocity = 5;              % in meters per second
+    tgt(1).rcs      = 1;             % in meters^2
+    tgt(1).position = [100 0 1.5]; % in meters
+    tgt(1).velocity = 5;             % in meters per second
+    tgt(2) = networkElements.target.basicTarget();
+    tgt(2).ID       = 2;
+    tgt(2).rcs      = 1;              % in meters^2
+    tgt(2).position = [180 -100 1.5]; % in meters
+    tgt(2).velocity = -5;             % in meters per second
     tgtParams       = tgt;
     
     % Update bs and UE/target pairs
