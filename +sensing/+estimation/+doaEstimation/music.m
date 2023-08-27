@@ -21,9 +21,6 @@ function [numTgtsEst, aziEst, eleEst] = music(radarEstParams, Ra)
     Uan      = Ua(:,L+1:end);
     Uann     = Uan*Uan';
 
-    % Number of estimated targets
-    numTgtsEst = L;
-
     % Threshhold for peak finding
     thresh = npwgnthresh(radarEstParams.Pfa);
 
@@ -65,7 +62,9 @@ function [numTgtsEst, aziEst, eleEst] = music(radarEstParams, Ra)
         plot2DAngularSpectrum
     
         % Assignment
-        [~, idx] = findpeaks(PmusicdB(:), 'NPeaks', L, 'Threshold', thresh, 'SortStr', 'descend');
+        % Number of estimated targets
+        numTgtsEst = floor(sqrt(L));
+        [~, idx]   = findpeaks(PmusicdB(:), 'NPeaks', numTgtsEst, 'Threshold', thresh/5, 'SortStr', 'ascend');
         [ele, azi] = ind2sub(size(PmusicdB), idx);
         eleEst = (ele-1)*eGranularity-eMax/2;
         aziEst = (azi-1)*aGranularity-aMax/2;
@@ -96,6 +95,8 @@ function [numTgtsEst, aziEst, eleEst] = music(radarEstParams, Ra)
         PmusicdB   = mag2db(PmusicNorm);
     
         % Assignment
+        % Number of estimated targets
+        numTgtsEst = L;
         [~, azi] = findpeaks(PmusicdB, 'NPeaks', L, 'Threshold', thresh, 'SortStr', 'ascend');
         aziEst = (azi-1)*scanGranularity-aMax/2;
         eleEst = NaN([1, numel(aziEst)]);
