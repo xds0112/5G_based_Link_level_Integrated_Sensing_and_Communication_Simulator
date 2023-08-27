@@ -49,7 +49,7 @@ function [aziEst, eleEst] = digitalBF(radarEstParams, Ra)
         plot2DAngularSpectrum
 
         % Assignment
-        [~, idx] = findpeaks(PdbfdB(:), 'Threshold', thresh, 'SortStr', 'ascend');
+        [~, idx] = findpeaks(PdbfdB(:), 'Threshold', thresh, 'SortStr', 'descend');
         [ele, azi] = ind2sub(size(PdbfdB), idx);
         eleEst = (ele-1)*eGranularity-eMax/2;
         aziEst = (azi-1)*aGranularity-aMax/2;
@@ -83,7 +83,7 @@ function [aziEst, eleEst] = digitalBF(radarEstParams, Ra)
         plotAngularSpectrum
         
         % DoA estimation
-        [~, aIdx] = findpeaks(PdbfdB, 'Threshold', thresh, 'SortStr', 'ascend');
+        [~, aIdx] = findpeaks(PdbfdB, 'Threshold', thresh, 'SortStr', 'descend');
         aziEst = (aIdx-1)*scanGranularity - aMax/2;
 
     end
