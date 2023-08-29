@@ -41,7 +41,7 @@ rdrEstParams     = sensing.preProcessing.radarParams(numSlots, carrier, waveInfo
 cfar             = sensing.detection.cfarConfig(rdrEstParams);
 rdrRxGrid        = sensing.monoStaticSensing(rdrTxGrid, carrier, waveInfo, bsParams, rdrEstParams, topoParams);
 estResults.FFT   = sensing.estimation.fft2D(rdrEstParams, cfar, rdrRxGrid, rdrTxGrid);
-estResults.MUSIC = sensing.estimation.music2D(rdrEstParams, bsParams, rdrRxGrid, rdrTxGrid);
+% estResults.MUSIC = sensing.estimation.music2D(rdrEstParams, bsParams, rdrRxGrid, rdrTxGrid);
 
 % Plot topology
 networkTopology.plotTopology(bsParams, estResults.FFT)
