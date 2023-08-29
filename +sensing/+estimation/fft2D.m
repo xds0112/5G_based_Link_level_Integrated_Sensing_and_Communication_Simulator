@@ -73,6 +73,7 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
 
     rdResponse = abs(rdm(:,:,1)).^2;
     detections = cfarDetector(rdResponse, CUTIdx);
+    detections = rmmissing(detections);
     nDetecions = size(detections, 2);
 
     % Restore estimation values
