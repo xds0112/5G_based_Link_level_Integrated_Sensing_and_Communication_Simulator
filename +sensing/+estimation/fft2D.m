@@ -49,7 +49,7 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
         estResults(i).eleEst = eleEst(i);
     end
 
-    %% 2D-FFT Algorithm
+    %% 2D-FFT Processing
     % Element-wise multiplication
     channelInfo = bsxfun(@times, rxGrid, pagectranspose(pagetranspose(txGrid)));  % [nSc x nSym x nAnts]
 
@@ -69,42 +69,46 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     if ~strcmp(cfarDetector.OutputFormat,'Detection index')
         cfarDetector.OutputFormat = 'Detection index';
     end
-    cfarDetector.NumDetections = numDets; % maximum number of detections to report
 
-    rdResponse = abs(rdm(:,:,1)).^2;
-    detections = cfarDetector(rdResponse, CUTIdx);
-    detections = rmmissing(detections);
-    nDetecions = size(detections, 2);
+    for r = 1:nAnts
 
-    % Restore estimation values
-    [rngEst, velEst, peaks] = deal(zeros(1, nDetecions));
-
-    if ~isempty(detections)
-
-        for i = 1:nDetecions
-
-            % Peak levels
-            peaks(i) = rdResponse(detections(1,i), detections(2,i), 1);
-
-            % Detection indices
-            rngIdx = detections(1,i)-1;
-            velIdx = detections(2,i)-nFFT/2-1;
-
-            % Range and velocity estimation
-            rngEst(i) = rngIdx.*radarEstParams.rRes;
-            velEst(i) = velIdx.*radarEstParams.vRes;
-
+        rdResponse  = abs(rdm(:,:,r)).^2;
+        detections  = cfarDetector(rdResponse, CUTIdx);
+        detections  = rmmissing(detections, 2);
+        nDetections = size(detections, 2);
+    
+        % Restore estimation values
+        [rngEst, velEst, peaks] = deal(zeros(1, nDetections));
+    
+        if ~isempty(detections)
+    
+            for i = 1:nDetections
+    
+                % Peak levels
+                peaks(i) = rdResponse(detections(1,i), detections(2,i));
+    
+                % Detection indices
+                rngIdx = detections(1,i)-1;
+                velIdx = detections(2,i)-nFFT/2-1;
+    
+                % Range and velocity estimation
+                rngEst(i) = rngIdx.*radarEstParams.rRes;
+                velEst(i) = velIdx.*radarEstParams.vRes;
+                
+            end
+    
         end
 
-    end
+        % Sort estimations by descending order
+        [~, idx] = sort(peaks, 'descend');
+        [rngEst(:), velEst(:)] = deal(rngEst(idx), velEst(idx));
+   
+        for i = 1:nDetections
+            % Assignment
+            estResults(i).rngEst = rngEst(i);
+            estResults(i).velEst = velEst(i);
+        end
 
-    % Sort estimations by descending order
-    [~, idx] = sort(peaks, 'descend');
-    [rngEst(:), velEst(:)] = deal(rngEst(idx), velEst(idx));
-    for i = 1:nDetecions
-        % Assignment
-        estResults(i).rngEst = rngEst(i);
-        estResults(i).velEst = velEst(i);
     end
 
     %% Plot Results
