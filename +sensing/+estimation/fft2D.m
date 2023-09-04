@@ -1,4 +1,4 @@
-function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
+function [doaEstResults, rdEstResults] = fft2D(radarEstParams, cfar, rxGrid, txGrid)
 %2D-FFT Algorithm for Range, Velocity and Angle Estimation.
 %
 % Input parameters:
@@ -33,7 +33,7 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     nFFT  = radarEstParams.nFFT;
 
     % Estimated results
-    estResults = struct;
+    doaEstResults = struct;
 
     %% DoA Estimation
     % Array correlation matrix
@@ -45,8 +45,8 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
 
     % Assignment
     for i = 1:numDets
-        estResults(i).aziEst = aziEst(i);
-        estResults(i).eleEst = eleEst(i);
+        doaEstResults(i).aziEst = aziEst(i);
+        doaEstResults(i).eleEst = eleEst(i);
     end
 
     %% 2D-FFT Processing
@@ -69,6 +69,9 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     if ~strcmp(cfarDetector.OutputFormat,'Detection index')
         cfarDetector.OutputFormat = 'Detection index';
     end
+
+    % Initialize cell array to store estimation values for each antenna element
+    antennaEstResults = cell(1, nAnts);
 
     for r = 1:nAnts
 
@@ -103,13 +106,15 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
         [~, idx] = sort(peaks, 'descend');
         [rngEst(:), velEst(:)] = deal(rngEst(idx), velEst(idx));
    
-        for i = 1:nDetections
-            % Assignment
-            estResults(i).rngEst = rngEst(i);
-            estResults(i).velEst = velEst(i);
-        end
+         % Store estimation results for current antenna element
+         rdEstResults = struct('rngEst', rngEst, 'velEst', velEst);
+         antennaEstResults{r} = rdEstResults;
 
     end
+
+    % Combine estimation results from all antenna elements and perform unique operation
+    combinedEstResults = cat(2, antennaEstResults{:});
+    rdEstResults = uniqueStructElements(combinedEstResults);
 
     %% Plot Results
     % plot 2D-RDM (1st Rx antenna array element)
@@ -154,6 +159,17 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
                 rngWin = repmat(hamming(nSc), [1 nSym]);
                 dopWin = repmat(hamming(nIFFT), [1 nSym]);
         end
+    end
+    
+    function uniqueStructArray = uniqueStructElements(inputStructArray)
+        % Convert the struct array to a table
+        dataTable = struct2table(inputStructArray);
+    
+        % Perform uniqueness operation on the table
+        uniqueDataTable = unique(dataTable);
+    
+        % Convert the unique table back to a struct array
+        uniqueStructArray = table2struct(uniqueDataTable);
     end
 
     function plotRDM(aryIdx)
