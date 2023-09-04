@@ -1,6 +1,9 @@
-function [numTgtsEst, aziEst, eleEst] = music(radarEstParams, Ra)
+function [L, aziEst, eleEst] = music(numDets, radarEstParams, Ra)
 %MUSIC Multiple signal classification (MUSIC) algorithm for DoA estimation
-%
+% numDets: Number of detections, which can be an integer or left empty ([]).
+%           When set to [], this function will automatically calculate the number
+%           of detections by invoking the [determineNumTargets] function.
+% 
 %  Author: D.S Xue, Key Laboratory of Universal Wireless Communications,
 % Ministry of Education, BUPT.
 
@@ -15,7 +18,11 @@ function [numTgtsEst, aziEst, eleEst] = music(radarEstParams, Ra)
     % L: The number of targets in the DoA of interest
     [Ua, Sa] = eig(Ra);
     Va       = real(diag(Sa));
-    L        = determineNumTargets(Va);
+    if isempty(numDets)
+        L = determineNumTargets(Va);
+    else
+        L = numDets;
+    end
     [~, Ia]  = sort(Va, 'descend');
     Ua       = Ua(:,Ia);
     Uan      = Ua(:,L+1:end);
@@ -62,12 +69,10 @@ function [numTgtsEst, aziEst, eleEst] = music(radarEstParams, Ra)
         plot2DAngularSpectrum
     
         % Assignment
-        [~, idx]   = findpeaks(PmusicdB(:), 'NPeaks', L, 'Threshold', thresh/5, 'SortStr', 'descend');
+        [~, idx]   = findpeaks(PmusicdB(:), 'NPeaks', L, 'Threshold', thresh, 'SortStr', 'descend');
         [ele, azi] = ind2sub(size(PmusicdB), idx);
         eleEst = (ele-1)*eGranularity-eMax/2;
         aziEst = (azi-1)*aGranularity-aMax/2;
-        % Number of estimated targets
-        numTgtsEst = numel(aziEst);
 
     else % ULA model
 
