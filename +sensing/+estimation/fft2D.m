@@ -32,15 +32,12 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     nIFFT = radarEstParams.nIFFT;
     nFFT  = radarEstParams.nFFT;
 
-    % Estimated results
-    estResults = struct;
-
     %% 2D-FFT Processing
     % Element-wise multiplication
     channelInfo = bsxfun(@times, rxGrid, pagectranspose(pagetranspose(txGrid)));  % [nSc x nSym x nAnts]
 
     % Select window
-    [rngWin, dopWin] = selectWindow('kaiser');
+    [rngWin, dopWin] = selectWindow('kaiser', nSc, nIFFT, nSym);
 
     % Generate windowed RDM
     chlInfo = channelInfo.*rngWin;                             % apply window to the channel info matrix
@@ -56,8 +53,8 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
         cfarDetector.OutputFormat = 'Detection index';
     end
 
-    % Initialize cell array to store estimation values for each antenna element
-    antennaEstResults = cell(1, nAnts);
+    % Initialize arrays to store rngEst and velEst values
+    [allRngEst, allVelEst] = deal([]);
 
     for r = 1:nAnts
 
@@ -91,16 +88,18 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
         % Sort estimations by descending order
         [~, idx] = sort(peaks, 'descend');
         [rngEst(:), velEst(:)] = deal(rngEst(idx), velEst(idx));
-   
-        % Store estimation results for current antenna element
-        rdEstResults = struct('rngEst', rngEst, 'velEst', velEst);
-        antennaEstResults{r} = rdEstResults;
+
+        % collect rngEst and velEst values
+        allRngEst = cat(2, allRngEst, rngEst);
+        allVelEst = cat(2, allVelEst, velEst);
 
     end
-
-    % Combine estimation results from all antenna elements and perform unique operation
-    combinedEstResults = cat(2, antennaEstResults{:});
-    estResults = uniqueStructElements(combinedEstResults);
+   
+    % Use the unique function to remove duplicates from allRngEst and allVelEst
+    [uniqueRngEst, uniqueVelEst] = deal(unique(allRngEst, 'stable'), unique(allVelEst, 'stable'));
+    
+    % Store the unique estimation values in a single structure
+    estResults = struct('rngEst', uniqueRngEst, 'velEst', uniqueVelEst);
 
     %% DoA Estimation
     % Array correlation matrix
@@ -108,7 +107,8 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     Ra = rxGridReshaped*rxGridReshaped'./(nSc*nSym);    % [nAnts x nAnts]
 
     % MUSIC method
-    [~, aziEst, eleEst] = sensing.estimation.doaEstimation.music(radarEstParams, Ra);
+    numDets = numel(uniqueRngEst);
+    [~, aziEst, eleEst] = sensing.estimation.doaEstimation.music(numDets, radarEstParams, Ra);
 
     % Assignment
     estResults.aziEst = aziEst;
@@ -122,52 +122,30 @@ function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
     % plotFFTSpectra(1,1,1)
 
     %% Local functions
-    function [rngWin, dopWin] = selectWindow(winType)
-        % Windows for sidelobe suppression: 'hamming, hann, blackman, 
-        % kaiser, taylorwin, chebwin, barthannwin, gausswin, tukeywin'
-        switch winType
-            case 'hamming'      % Hamming window
-                rngWin = repmat(hamming(nSc), [1 nSym]);
-                dopWin = repmat(hamming(nIFFT), [1 nSym]);
-            case 'hann'         % Hanning window
-                rngWin = repmat(hann(nSc), [1 nSym]);
-                dopWin = repmat(hann(nIFFT), [1 nSym]);
-            case 'blackman'     % Blackman window
-                rngWin = repmat(blackman(nSc), [1 nSym]);
-                dopWin = repmat(blackman(nIFFT), [1 nSym]);
-            case 'kaiser'       % Kaiser window
-                rngWin = repmat(kaiser(nSc, 3), [1 nSym]);
-                dopWin = repmat(kaiser(nIFFT, 3), [1 nSym]);
-            case 'taylorwin'    % Taylor window
-                rngWin = repmat(taylorwin(nSc, 4, -30), [1 nSym]);
-                dopWin = repmat(taylorwin(nIFFT, 4, -30), [1 nSym]);
-            case 'chebwin'      % Chebyshev window
-                rngWin = repmat(chebwin(nSc, 50), [1 nSym]);
-                dopWin = repmat(chebwin(nIFFT, 50), [1 nSym]);
-            case 'barthannwin'  % Modified Bartlett-Hann window
-                rngWin = repmat(barthannwin(nSc), [1 nSym]);
-                dopWin = repmat(barthannwin(nIFFT), [1 nSym]);
-            case 'gausswin'     % Gaussian window
-                rngWin = repmat(gausswin(nSc, 2.5), [1 nSym]);
-                dopWin = repmat(gausswin(nIFFT, 2.5), [1 nSym]);
-            case 'tukeywin'     % tukey (tapered cosine) window
-                rngWin = repmat(tukeywin(nSc, .5), [1 nSym]);
-                dopWin = repmat(tukeywin(nIFFT, .5), [1 nSym]);
-            otherwise           % Default to Hamming window
-                rngWin = repmat(hamming(nSc), [1 nSym]);
-                dopWin = repmat(hamming(nIFFT), [1 nSym]);
+    function [rngWin, dopWin] = selectWindow(winType, nSc, nIFFT, nSym)
+        % Default to Hamming window
+        rngWin = [];
+        dopWin = [];
+        
+        % Define window functions and their parameters
+        windows = struct(...
+            'hamming', @(n) hamming(n), ...
+            'hann', @(n) hann(n), ...
+            'blackman', @(n) blackman(n), ...
+            'kaiser', @(n) kaiser(n, 3), ...
+            'taylorwin', @(n) taylorwin(n, 4, -30), ...
+            'chebwin', @(n) chebwin(n, 50), ...
+            'barthannwin', @(n) barthannwin(n), ...
+            'gausswin', @(n) gausswin(n, 2.5), ...
+            'tukeywin', @(n) tukeywin(n, 0.5) ...
+        );
+    
+        % Check if the specified window type exists in the 'windows' struct
+        if isfield(windows, winType)
+            windowFunc = windows.(winType);
+            rngWin = repmat(windowFunc(nSc), [1 nSym]);
+            dopWin = repmat(windowFunc(nIFFT), [1 nSym]);
         end
-    end
-    
-    function uniqueStructArray = uniqueStructElements(inputStructArray)
-        % Convert the struct array to a table
-        dataTable = struct2table(inputStructArray);
-    
-        % Perform uniqueness operation on the table
-        uniqueDataTable = unique(dataTable);
-    
-        % Convert the unique table back to a struct array
-        uniqueStructArray = table2struct(uniqueDataTable);
     end
 
     function plotRDM(aryIdx)
