@@ -1,4 +1,4 @@
-function [doaEstResults, rdEstResults] = fft2D(radarEstParams, cfar, rxGrid, txGrid)
+function estResults = fft2D(radarEstParams, cfar, rxGrid, txGrid)
 %2D-FFT Algorithm for Range, Velocity and Angle Estimation.
 %
 % Input parameters:
@@ -33,21 +33,7 @@ function [doaEstResults, rdEstResults] = fft2D(radarEstParams, cfar, rxGrid, txG
     nFFT  = radarEstParams.nFFT;
 
     % Estimated results
-    doaEstResults = struct;
-
-    %% DoA Estimation
-    % Array correlation matrix
-    rxGridReshaped = reshape(rxGrid, nSc*nSym, nAnts)'; % [nAnts x nSc*nSym]
-    Ra = rxGridReshaped*rxGridReshaped'./(nSc*nSym);    % [nAnts x nAnts]
-
-    % MUSIC method
-    [numDets, aziEst, eleEst] = sensing.estimation.doaEstimation.music(radarEstParams, Ra);
-
-    % Assignment
-    for i = 1:numDets
-        doaEstResults(i).aziEst = aziEst(i);
-        doaEstResults(i).eleEst = eleEst(i);
-    end
+    estResults = struct;
 
     %% 2D-FFT Processing
     % Element-wise multiplication
@@ -106,15 +92,27 @@ function [doaEstResults, rdEstResults] = fft2D(radarEstParams, cfar, rxGrid, txG
         [~, idx] = sort(peaks, 'descend');
         [rngEst(:), velEst(:)] = deal(rngEst(idx), velEst(idx));
    
-         % Store estimation results for current antenna element
-         rdEstResults = struct('rngEst', rngEst, 'velEst', velEst);
-         antennaEstResults{r} = rdEstResults;
+        % Store estimation results for current antenna element
+        rdEstResults = struct('rngEst', rngEst, 'velEst', velEst);
+        antennaEstResults{r} = rdEstResults;
 
     end
 
     % Combine estimation results from all antenna elements and perform unique operation
     combinedEstResults = cat(2, antennaEstResults{:});
-    rdEstResults = uniqueStructElements(combinedEstResults);
+    estResults = uniqueStructElements(combinedEstResults);
+
+    %% DoA Estimation
+    % Array correlation matrix
+    rxGridReshaped = reshape(rxGrid, nSc*nSym, nAnts)'; % [nAnts x nSc*nSym]
+    Ra = rxGridReshaped*rxGridReshaped'./(nSc*nSym);    % [nAnts x nAnts]
+
+    % MUSIC method
+    [~, aziEst, eleEst] = sensing.estimation.doaEstimation.music(radarEstParams, Ra);
+
+    % Assignment
+    estResults.aziEst = aziEst;
+    estResults.eleEst = eleEst;
 
     %% Plot Results
     % plot 2D-RDM (1st Rx antenna array element)
