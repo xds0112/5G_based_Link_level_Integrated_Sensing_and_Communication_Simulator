@@ -61,7 +61,7 @@ function estResults = music2D(rdrEstParams, bsParams, rxGrid, txGrid)
     Ra = rxGridReshaped*rxGridReshaped'./(nSc*nSym);    % [nAnts x nAnts]
 
     % MUSIC method
-    [L, aziEst, eleEst] = sensing.estimation.doaEstimation.music(rdrEstParams, Ra);
+    [L, aziEst, eleEst] = sensing.estimation.doaEstimation.music([], rdrEstParams, Ra);
     for i = 1:L
         estResults(i).aziEst = aziEst(i);
         estResults(i).eleEst = eleEst(i);
