@@ -1,98 +1,72 @@
 function radarEstRMSE = getRMSE(radarEstResults, radarEstParams)
 % Calculate the root mean squre error (RMSE) of estimation results
-
+%
 % Author: D.S Xue, Key Laboratory of Universal Wireless Communications,
 % Ministry of Education, BUPT.
+    
+    %% Parameters
+    % The estimation result is seen as a non-detection
+    % when the corresponding error exceeds the threshold value.
+    rngDetThreshold = radarEstParams.rRes;
+    
+    % antenna array type
+    isUPA = isa(radarEstParams.antennaType, 'phased.NRRectangularPanelArray'); 
 
-   %% Params
-   % The estimation result is seen as a non-detection
-   % when the corresponding error exceeds the threshold value.
-   rngDetThreshold = radarEstParams.rRes;
-   velDetThreshold = radarEstParams.vRes; 
-
-   isUPA = 0; 
-   % antenna array type
-   if isa(radarEstParams.antennaType, 'phased.NRRectangularPanelArray') % UPA
-       isUPA = 1;
-   end
-
-   %% Calculate errors
-   % real & estimated values
-        rngReal = extractfield(radarEstParams.tgtRealPos, 'Range')';
-        velReal = extractfield(radarEstParams.tgtRealPos, 'Velocity')';
-        eleReal = extractfield(radarEstParams.tgtRealPos, 'Elevation')';
-        aziReal = extractfield(radarEstParams.tgtRealPos, 'Azimuth')';
-
-        rngEst = extractfield(radarEstResults, 'rngEst');
-        velEst = extractfield(radarEstResults, 'velEst');
-        if isUPA
-            eleEst = extractfield(radarEstResults, 'eleEst');
-            aziEst = extractfield(radarEstResults, 'aziEst');
-        else
-            aziEst = extractfield(radarEstResults, 'aziEst');
-        end
-
-        if isempty(rngEst)
-            disp('No target is detected')
-            radarEstRMSE = NaN;
-            return
-        else
-            % error values
-            for r = 1:size(rngEst, 1)
-
-                detIdx = find(abs(rngReal - rngEst(r)) < rngDetThreshold);
-
-                if size(detIdx, 1) == 1 % rng detection matches
-                    rError(r) = rngReal(detIdx) - rngEst(r);
-                    vError(r) = velReal(detIdx) - velEst(r);
-                    if isUPA
-                        eleError(r) = eleReal(detIdx) - eleEst(r);
-                        aziError(r) = aziReal(detIdx) - aziEst(r);
-                    else
-                        aziError(r) = aziReal(detIdx) - aziEst(r);
-                    end
-
-                elseif size(detIdx,1) > 1 % vel detection matches
-
-                    newIdx = find(abs(velReal(detIdx) - velEst(r)) < velDetThreshold);
-
-                    if ~isempty(newIdx)
-                        rError(r) = rngReal(detIdx(newIdx)) - rngEst(r);
-                        vError(r) = velReal(detIdx(newIdx)) - velEst(r);
-                        if isUPA
-                            eleError(r) = eleReal(detIdx(newIdx)) - eleEst(r);
-                            aziError(r) = aziReal(detIdx(newIdx)) - aziEst(r);
-                        else
-                            aziError(r) = aziReal(detIdx(newIdx)) - aziEst(r);
-                        end 
-                    else
-                        [rError(r), vError(r), eleError(r), aziError(r)] = deal(NaN);
-                    end
-
-                else % rng & vel detection fail to match
-                
-                    [rError(r), vError(r), eleError(r), aziError(r)] = deal(NaN);
-
-                end
+    %% Calculate errors
+    % real & estimated values
+    rngReal = extractfield(radarEstParams.tgtRealPos, 'Range')';
+    velReal = extractfield(radarEstParams.tgtRealPos, 'Velocity')';
+    eleReal = extractfield(radarEstParams.tgtRealPos, 'Elevation')';
+    aziReal = extractfield(radarEstParams.tgtRealPos, 'Azimuth')';
+    
+    rngEst = extractfield(radarEstResults, 'rngEst');
+    velEst = extractfield(radarEstResults, 'velEst');
+    if isUPA
+        eleEst = extractfield(radarEstResults, 'eleEst');
+        aziEst = extractfield(radarEstResults, 'aziEst');
+    else
+        aziEst = extractfield(radarEstResults, 'aziEst');
+    end
+    
+     if isempty(rngEst)
+        disp('No target is detected')
+        radarEstRMSE = NaN;
+        return
+    end
+    
+    % Initialize error variables
+    numDets = numel(rngEst);
+    [rngError, velError, eleError, aziError] = deal(NaN(1, numDets));
+    [rngRMSE, velRMSE, eleRMSE, aziRMSE]     = deal(NaN(1, numDets));
+    
+    for r = 1:numDets
+        detIdx = find(abs(rngReal - rngEst(r)) < rngDetThreshold);
+    
+        if numel(detIdx) >= 1
+            % rng detection matches or vel detection matches
+            rngError(r) = rngReal(detIdx(1)) - rngEst(r);
+            velError(r) = velReal(detIdx(1)) - velEst(r);
+            if isUPA
+                eleError(r) = eleReal(detIdx(1)) - eleEst(r);
             end
+            aziError(r) = aziReal(detIdx(1)) - aziEst(r);
         end
 
-   %% Calculate RMSEs
-   radarEstRMSE = struct;
+        % Calculate RMSEs for each detection
+        rngRMSE(r) = sqrt(mean(rmmissing(rngError(r)).^2)); % RMSE for rngError
+        velRMSE(r) = sqrt(mean(rmmissing(velError(r)).^2)); % RMSE for vError
+        eleRMSE(r) = sqrt(mean(rmmissing(eleError(r)).^2)); % RMSE for eleError (if applicable)
+        aziRMSE(r) = sqrt(mean(rmmissing(aziError(r)).^2)); % RMSE for aziError
 
-   % RMSEs calculation
-   for i = 1:length(rError)
+    end
 
-       radarEstRMSE(i).rngRMSE = sqrt(sum(rError(i,:).^2)/size(rError(i,:), 1));
-       radarEstRMSE(i).velRMSE = sqrt(sum(vError(i,:).^2)/size(vError(i,:), 1));
-
-       if isUPA % UPA
-          radarEstRMSE(i).eleRMSE = sqrt(sum(eleError(i,:).^2)/size(eleError(i,:), 1));
-          radarEstRMSE(i).aziRMSE = sqrt(sum(aziError(i,:).^2)/size(aziError(i,:), 1));
-       else % ULA
-          radarEstRMSE(i).aziRMSE = sqrt(sum(aziError(i,:).^2)/size(aziError(i,:), 1));
-       end
-
-   end
+    %% Calculate RMSEs
+    radarEstRMSE = struct;
+    
+    % Store RMSE values in a struct
+    radarEstRMSE.rngRMSE = rngRMSE;
+    radarEstRMSE.velRMSE = velRMSE;
+    radarEstRMSE.eleRMSE = eleRMSE;
+    radarEstRMSE.aziRMSE = aziRMSE;
 
 end
