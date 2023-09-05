@@ -1,6 +1,6 @@
 ## 5G-based Link-level Integrated Sensing and Communication Simulator
-    Link-level simulator (LLS) to implement NR-based Integrated Sensing and Communication (ISAC) key techniques.
-    Aiming at testing link-level ISAC algorithms.
+    Link-level simulator (LLS)
+    Aims at testing NR-based Integrated Sensing and Communication (ISAC) key techniques and algorithms.
     Focuses on the communication physical (PHY) layer modeling and radar signal processing procedures only.
 
 
