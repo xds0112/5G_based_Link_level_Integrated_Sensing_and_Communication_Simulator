@@ -1,5 +1,7 @@
-function [aziEst, eleEst] = mvdrBF(radarEstParams, Ra)
+function [aziEst, eleEst] = mvdrBF(numDets, radarEstParams, Ra)
 %MVDRBF Minimum variance distortionless response (MVDR) beamformer for DoA estimation
+%
+% numDets: Number of detections, integer.
 %
 %  Author: D.S Xue, Key Laboratory of Universal Wireless Communications,
 % Ministry of Education, BUPT.
@@ -7,9 +9,6 @@ function [aziEst, eleEst] = mvdrBF(radarEstParams, Ra)
     % Antenna array    
     array = radarEstParams.antennaType;
     d = .5;  % the ratio of element spacing to wavelength, normally set to 0.5
-
-    % Threshhold for peak finding
-    thresh = npwgnthresh(radarEstParams.Pfa);
 
     if isa(array, 'phased.NRRectangularPanelArray') % UPA model
 
@@ -36,7 +35,7 @@ function [aziEst, eleEst] = mvdrBF(radarEstParams, Ra)
                 scanAzimuth   = (a-1)*aGranularity - aMax/2;
                 aa = aUPA(scanAzimuth, scanElevation, mm, nn);
                 aa = reshape(aa, nAntsX*nAntsY, 1);
-                Pmvdr(e,a) = 1./(aa'*Ra^-1*aa);
+                Pmvdr(e,a) = 1./(aa'*Ra^-1*aa + eps(1));
             end
         end
         
@@ -49,7 +48,7 @@ function [aziEst, eleEst] = mvdrBF(radarEstParams, Ra)
         plot2DAngularSpectrum
   
         % Assignment
-        [~, idx] = findpeaks(PmvdrdB(:), 'Threshold', thresh, 'SortStr', 'descend');
+        [~, idx]   = tools.find2DPeaks(PmusicdB, numDets);
         [ele, azi] = ind2sub(size(PmvdrdB), idx);
         eleEst = (ele-1)*eGranularity-eMax/2;
         aziEst = (azi-1)*aGranularity-aMax/2;
@@ -71,7 +70,7 @@ function [aziEst, eleEst] = mvdrBF(radarEstParams, Ra)
         for a = 1:aSteps
             scanAngle = (a-1)*scanGranularity - aMax/2;
             aa        = aULA(scanAngle, nn);
-            Pmvdr(a)  = 1./(aa'*Ra^-1*aa);
+            Pmvdr(a)  = 1./(aa'*Ra^-1*aa + eps(1));
         end
         
         % Normalization
@@ -83,9 +82,9 @@ function [aziEst, eleEst] = mvdrBF(radarEstParams, Ra)
         plotAngularSpectrum
         
         % DoA estimation
-        [~, aIdx] = findpeaks(PmvdrdB, 'Threshold', thresh, 'SortStr', 'descend');
-        aziEst = (aIdx-1)*scanGranularity - aMax/2;
-        eleEst = NaN;
+        [~, azi] = findpeaks(PmvdrdB, 'NPeaks', numDets, 'SortStr', 'descend');
+        aziEst = (azi-1)*scanGranularity-aMax/2;
+        eleEst = NaN([1, numel(aziEst)]);
 
     end
 
