@@ -28,9 +28,6 @@ function [L, aziEst, eleEst] = music(numDets, radarEstParams, Ra)
     Uan      = Ua(:,L+1:end);
     Uann     = Uan*Uan';
 
-    % Threshhold for peak finding
-    thresh = npwgnthresh(radarEstParams.Pfa);
-
     if isa(array, 'phased.NRRectangularPanelArray') % UPA model
 
         % Array parameters
@@ -56,7 +53,7 @@ function [L, aziEst, eleEst] = music(numDets, radarEstParams, Ra)
                 scanAzimuth   = (a-1)*aGranularity - aMax/2;
                 aa = aUPA(scanAzimuth, scanElevation, mm, nn);
                 aa = reshape(aa, nAntsX*nAntsY, 1);
-                Pmusic(e,a) = 1./(aa'*Uann*aa);
+                Pmusic(e,a) = 1./(aa'*Uann*aa + eps(1));
             end
         end
         
@@ -67,10 +64,9 @@ function [L, aziEst, eleEst] = music(numDets, radarEstParams, Ra)
 
         % Plot
         plot2DAngularSpectrum
-    
+
         % Assignment
-        [~, idx]   = findpeaks(PmusicdB(:), 'NPeaks', L, 'Threshold', thresh, 'SortStr', 'descend');
-        [ele, azi] = ind2sub(size(PmusicdB), idx);
+        [ele, azi] = tools.find2DPeaks(PmusicdB, L);
         eleEst = (ele-1)*eGranularity-eMax/2;
         aziEst = (azi-1)*aGranularity-aMax/2;
 
@@ -91,7 +87,7 @@ function [L, aziEst, eleEst] = music(numDets, radarEstParams, Ra)
         for a = 1:aSteps
             scanAngle = (a-1)*scanGranularity - aMax/2;
             aa        = aULA(scanAngle, nn);
-            Pmusic(a) = 1./(aa'*Uann*aa);
+            Pmusic(a) = 1./(aa'*Uann*aa + eps(1));
         end
         
         % Normalization
@@ -100,11 +96,13 @@ function [L, aziEst, eleEst] = music(numDets, radarEstParams, Ra)
         PmusicdB   = mag2db(PmusicNorm);
     
         % Assignment
-        [~, azi] = findpeaks(PmusicdB, 'NPeaks', L, 'Threshold', thresh, 'SortStr', 'descend');
-        aziEst = (azi-1)*scanGranularity-aMax/2;
-        % Number of estimated targets
-        numTgtsEst = numel(aziEst);
-        eleEst = NaN([1, numTgtsEst]);
+        [~, azi] = findpeaks(PmusicdB, 'NPeaks', L, 'SortStr', 'descend');
+        if ~isempty(azi)
+            aziEst = (azi-1)*scanGranularity-aMax/2;
+        else
+            aziEst = NaN([1, L]);
+        end
+        eleEst = NaN([1, numel(aziEst)]);
     
         % Plot
         plotAngularSpectrum
