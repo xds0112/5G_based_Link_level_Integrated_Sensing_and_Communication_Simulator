@@ -94,18 +94,14 @@ function [L, aziEst, eleEst] = music(numDets, radarEstParams, Ra)
         Pmusic     = abs(Pmusic);
         PmusicNorm = Pmusic./max(Pmusic);
         PmusicdB   = mag2db(PmusicNorm);
+
+        % Plot
+        plotAngularSpectrum
     
         % Assignment
         [~, azi] = findpeaks(PmusicdB, 'NPeaks', L, 'SortStr', 'descend');
-        if ~isempty(azi)
-            aziEst = (azi-1)*scanGranularity-aMax/2;
-        else
-            aziEst = NaN([1, L]);
-        end
+        aziEst = (azi-1)*scanGranularity-aMax/2;
         eleEst = NaN([1, numel(aziEst)]);
-    
-        % Plot
-        plotAngularSpectrum
 
     end
 
