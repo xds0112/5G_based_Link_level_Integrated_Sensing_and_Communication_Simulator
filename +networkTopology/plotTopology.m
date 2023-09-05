@@ -29,7 +29,7 @@ function plotTopology(bsParams, estResults)
     aziEst  = extractfield(estResults, 'aziEst');
     eleEst  = extractfield(estResults, 'eleEst');
     rngEst  = extractfield(estResults, 'rngEst');
-    numEsts = numel(estResults);
+    numEsts = numel(rngEst);
 
     if ~any(isnan(eleEst)) % UPA model
 
