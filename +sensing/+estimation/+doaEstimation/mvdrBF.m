@@ -48,7 +48,7 @@ function [aziEst, eleEst] = mvdrBF(numDets, radarEstParams, Ra)
         plot2DAngularSpectrum
   
         % Assignment
-        [ele, azi] = tools.find2DPeaks(PmusicdB, numDets);
+        [ele, azi] = tools.find2DPeaks(PmvdrdB, numDets);
         eleEst = (ele-1)*eGranularity-eMax/2;
         aziEst = (azi-1)*aGranularity-aMax/2;
        
