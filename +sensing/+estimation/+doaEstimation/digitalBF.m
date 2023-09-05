@@ -1,5 +1,7 @@
-function [aziEst, eleEst] = digitalBF(radarEstParams, Ra)
+function [aziEst, eleEst] = digitalBF(numDets, radarEstParams, Ra)
 %DIGITALBF Digital beamformer (DBF) /beamscan for DoA estimation
+%
+% numDets: Number of detections, integer.
 %
 %  Author: D.S Xue, Key Laboratory of Universal Wireless Communications,
 % Ministry of Education, BUPT.
@@ -7,9 +9,6 @@ function [aziEst, eleEst] = digitalBF(radarEstParams, Ra)
     % Antenna array    
     array = radarEstParams.antennaType;
     d = .5;  % the ratio of element spacing to wavelength, normally set to 0.5
-
-    % Threshhold for peak finding
-    thresh = npwgnthresh(radarEstParams.Pfa);
 
     if isa(array, 'phased.NRRectangularPanelArray') % UPA model
 
@@ -49,8 +48,7 @@ function [aziEst, eleEst] = digitalBF(radarEstParams, Ra)
         plot2DAngularSpectrum
 
         % Assignment
-        [~, idx] = findpeaks(PdbfdB(:), 'Threshold', thresh, 'SortStr', 'descend');
-        [ele, azi] = ind2sub(size(PdbfdB), idx);
+        [ele, azi] = tools.find2DPeaks(PdbfdB, numDets);
         eleEst = (ele-1)*eGranularity-eMax/2;
         aziEst = (azi-1)*aGranularity-aMax/2;
 
@@ -83,8 +81,9 @@ function [aziEst, eleEst] = digitalBF(radarEstParams, Ra)
         plotAngularSpectrum
         
         % DoA estimation
-        [~, aIdx] = findpeaks(PdbfdB, 'Threshold', thresh, 'SortStr', 'descend');
-        aziEst = (aIdx-1)*scanGranularity - aMax/2;
+        [~, azi] = findpeaks(PdbfdB, 'NPeaks', numDets, 'SortStr', 'descend');
+        aziEst = (azi-1)*scanGranularity - aMax/2;
+        eleEst = NaN([1, numel(aziEst)]);
 
     end
 
