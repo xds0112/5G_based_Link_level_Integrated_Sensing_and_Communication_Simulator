@@ -39,8 +39,8 @@ function [gNBEstRMSEs, gNBComResults] = isacSimulation(simuParams)
     SNRdBDL = 25; % in dB
     SNRdBUL = 20; % in dB
     
-    % Radar symbols in all slots combined
-    radarTxGrid = [];
+    % Radar symbols and waveform in all slots combined
+    [radarTxGrid, radarTxWave] = deal([]);
     % Radar estimation parameters
     rdrEstParams = sensing.preProcessing.radarParams(nSlots, carrier, waveInfo, gNB, topoParams);
     cfar         = sensing.detection.cfarConfig(rdrEstParams);
@@ -85,6 +85,8 @@ function [gNBEstRMSEs, gNBComResults] = isacSimulation(simuParams)
             if (slotType == "D")
                 % Symbols accumulation
                 radarTxGrid = cat(2, radarTxGrid, txDL.dlGrid);
+                % Wave accumulation
+                radarTxWave = cat(1, radarTxWave, txDL.dlWaveform);
             end
         end
 
@@ -99,7 +101,7 @@ function [gNBEstRMSEs, gNBComResults] = isacSimulation(simuParams)
     % Sensing processing
     if gNB.senService
         % Radar active sensing
-        radarRxGrid = sensing.monoStaticSensing(radarTxGrid, carrier, waveInfo, gNB, rdrEstParams, topoParams);
+        radarRxGrid = sensing.monoStaticSensing(radarTxWave, carrier, waveInfo, gNB, rdrEstParams, topoParams);
         % Radar parameter estimation algorithm
         if strcmp(gNB.estAlgorithm, 'FFT')
             gNBEstResults = sensing.estimation.fft2D(rdrEstParams, cfar, radarRxGrid, radarTxGrid);
