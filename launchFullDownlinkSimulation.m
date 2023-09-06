@@ -34,12 +34,12 @@ numSlots = numFrames*carrier.SlotsPerFrame;
 
 % Downlink grid mapping and transmitting
 nTxAnts = prod(bsParams.antConfig.bsAntSize);
-rdrTxGrid = communication.fullDownlinkTransmit(numFrames, carrier, pdsch, pdschExt, nTxAnts, newWtx, harq, dlsch);
+[rdrTxGrid, rdrTxWave] = communication.fullDownlinkTransmit(numFrames, carrier, pdsch, pdschExt, nTxAnts, newWtx, harq, dlsch);
 
 % Radar mono-static detection and estimation
 rdrEstParams = sensing.preProcessing.radarParams(numSlots, carrier, waveInfo, bsParams, topoParams);
 cfar         = sensing.detection.cfarConfig(rdrEstParams);
-rdrRxGrid    = sensing.monoStaticSensing(rdrTxGrid, carrier, waveInfo, bsParams, rdrEstParams, topoParams);
+rdrRxGrid    = sensing.monoStaticSensing(rdrTxWave, carrier, waveInfo, bsParams, rdrEstParams, topoParams);
 estResults   = sensing.estimation.fft2D(rdrEstParams, cfar, rdrRxGrid, rdrTxGrid);
 
 % Plot topology
@@ -47,5 +47,4 @@ networkTopology.plotTopology(bsParams, estResults)
 
 % Get estimation RMSEs
 estRMSE = sensing.postProcessing.getRMSE(estResults, rdrEstParams);
-
 
