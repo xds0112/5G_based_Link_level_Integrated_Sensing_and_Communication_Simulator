@@ -4,7 +4,7 @@ function echoGrid = monoStaticSensing(txWaveform, carrier, waveInfo, bsParams, r
 % Author: D.S.Xue, Key Laboratory of Universal Wireless Communications,
 % Ministry of Education, BUPT.
 %%
-    % Apply large-scale gain
+    % Signal amplitude
     nTxAnts = prod(bsParams.antConfig.bsAntSize);
     sigAmp  = db2mag(bsParams.txPower-30)*sqrt(waveInfo.Nfft^2/(carrier.NSizeGrid*12*nTxAnts));
     txWaveform = sigAmp*txWaveform;
