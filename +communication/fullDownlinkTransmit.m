@@ -1,11 +1,11 @@
-function rdrTxGrid = fullDownlinkTransmit(numFrames, carrier, pdsch, pdschExt, nTxAnts, newWtx, harq, dlsch)
+function [rdrTxGrid, rdrTxWave] = fullDownlinkTransmit(numFrames, carrier, pdsch, pdschExt, nTxAnts, newWtx, harq, dlsch)
 
     % DLSCH encoder object and decoder object    
     encodeDLSCH = dlsch.encodeDLSCH;
     decodeDLSCH = dlsch.decodeDLSCH;
 
-    % Radar Tx and Rx symbols in all slots combined
-    rdrTxGrid = [];
+    % Radar Tx symbols and waveform in all slots combined
+    [rdrTxGrid, rdrTxWave] = deal([]);
     
     % Number of total slots
     nSlots = numFrames*carrier.SlotsPerFrame;
@@ -64,8 +64,14 @@ function rdrTxGrid = fullDownlinkTransmit(numFrames, carrier, pdsch, pdschExt, n
             pdschGrid(dmrsAntIndices) = pdschGrid(dmrsAntIndices) + dmrsSymbols(:,p)*precodingWeights(p,:);
         end
 
+        % OFDM modulation
+        dlWaveform = nrOFDMModulate(carrier, pdschGrid);
+
         % Downlink symbols accumulation
         rdrTxGrid = cat(2, rdrTxGrid, pdschGrid);
+
+        % Downlink OFDM waveform accumulation
+        rdrTxWave = cat(1, rdrTxWave, dlWaveform);
 
      end
 
