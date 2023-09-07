@@ -14,10 +14,4 @@ function echoGrid = monoStaticSensing(txWaveform, carrier, waveInfo, bsParams, r
 
     % OFDM demodulation
     echoGrid = nrOFDMDemodulate(carrier, txEcho);
-
-    % Echo grid dimension validation
-    if size(echoGrid,2) < carrier.SymbolsPerSlot
-        echoGrid = [echoGrid zeros(size(echoGrid,1), carrier.SymbolsPerSlot-size(echoGrid,2), size(echoGrid,3))];
-    end
-
 end
