@@ -33,7 +33,7 @@ numSlots = numFrames*carrier.SlotsPerFrame;
 [harq, dlsch, newWtx] = communication.preProcessing.fullDownlinkTransmissionSetup(pdsch, pdschExt, channel, carrier);
 
 % Downlink grid mapping and transmitting
-nTxAnts = prod(bsParams.antConfig.bsAntSize);
+nTxAnts = prod(bsParams.antConfig.bsTxAntSize);
 [rdrTxGrid, rdrTxWave] = communication.fullDownlinkTransmit(numFrames, carrier, pdsch, pdschExt, nTxAnts, newWtx, harq, dlsch);
 
 % Radar mono-static detection and estimation
