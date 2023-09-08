@@ -25,17 +25,23 @@ classdef gNB < networkElements.networkElementsWithPosition
         % Communication services
         comService = true
 
-        % Attached UEs
-        attachedUEs
-
         % Sensing services
         senService = true
+
+        % Attached UEs
+        attachedUEs
 
         % Attached targets
         attachedTgts
 
-        % Antenna size
-        antSize
+        % Antenna size for transmission
+        txAntSize
+
+        % Antenna size for communication reception
+        rxComAntSize
+
+        % Antenna size for sensing reception
+        rxSenAntSize
 
         % Flase alarm rate
         Pfa = 1e-9
@@ -57,8 +63,14 @@ classdef gNB < networkElements.networkElementsWithPosition
         % Height of the antenna attached (m)
         height
 
-        % Tx array
+        % Transmission antenna array
         txArray
+
+        % Reception antenna array for communication
+        rxComArray
+
+        % Reception antenna array for sensing
+        rxSenArray
 
         % Antenna configurations
         antConfig
@@ -165,19 +177,65 @@ classdef gNB < networkElements.networkElementsWithPosition
             lambda = physconst('LightSpeed')/obj.carrierFrequency;
         
             % Antenna array matrix
-            bsAntSize = obj.antSize;
-            nTxAnts = prod(bsAntSize);
+            antSize = obj.txAntSize;
+            nAnts = prod(antSize);
             
             % Configure the uniform planar array (UPA) or uniform linear array (ULA)
             % based on the sizes of antennas arrays.
-            if ~any(bsAntSize(1, end-1) == 1)
+            if ~any(antSize(1, end-1) == 1)
                 % Default antenna elements are [phased.NRAntennaElement]
                 ant = phased.NRRectangularPanelArray('ElementSet', {phased.NRAntennaElement, phased.NRAntennaElement}, ...
-                    'Size', [bsAntSize(1),bsAntSize(2),1,1], 'Spacing', [.5,.5,3,3]*lambda);
+                    'Size', [antSize(1), antSize(2), 1, 1], 'Spacing', [.5, .5, 3, 3]*lambda);
             else
                 % Configure the transmit antenna elements
                 ant = phased.ULA('Element', phased.IsotropicAntennaElement('BackBaffled',true), ...
-                    'NumElements', nTxAnts, 'ElementSpacing', .5*lambda);
+                    'NumElements', nAnts, 'ElementSpacing', .5*lambda);
+            end
+
+        end
+
+        function ant = get.rxComArray(obj)
+
+            % Wavelength
+            lambda = physconst('LightSpeed')/obj.carrierFrequency;
+        
+            % Antenna array matrix
+            antSize = obj.rxComAntSize;
+            nAnts = prod(antSize);
+            
+            % Configure the uniform planar array (UPA) or uniform linear array (ULA)
+            % based on the sizes of antennas arrays.
+            if ~any(antSize(1, end-1) == 1)
+                % Default antenna elements are [phased.NRAntennaElement]
+                ant = phased.NRRectangularPanelArray('ElementSet', {phased.NRAntennaElement, phased.NRAntennaElement}, ...
+                    'Size', [antSize(1), antSize(2), 1, 1], 'Spacing', [.5, .5, 3, 3]*lambda);
+            else
+                % Configure the transmit antenna elements
+                ant = phased.ULA('Element', phased.IsotropicAntennaElement('BackBaffled',true), ...
+                    'NumElements', nAnts, 'ElementSpacing', .5*lambda);
+            end
+
+        end
+
+        function ant = get.rxSenArray(obj)
+
+            % Wavelength
+            lambda = physconst('LightSpeed')/obj.carrierFrequency;
+        
+            % Antenna array matrix
+            antSize = obj.rxSenAntSize;
+            nAnts = prod(antSize);
+            
+            % Configure the uniform planar array (UPA) or uniform linear array (ULA)
+            % based on the sizes of antennas arrays.
+            if ~any(antSize(1, end-1) == 1)
+                % Default antenna elements are [phased.NRAntennaElement]
+                ant = phased.NRRectangularPanelArray('ElementSet', {phased.NRAntennaElement, phased.NRAntennaElement}, ...
+                    'Size', [antSize(1), antSize(2), 1, 1], 'Spacing', [.5, .5, 3, 3]*lambda);
+            else
+                % Configure the transmit antenna elements
+                ant = phased.ULA('Element', phased.IsotropicAntennaElement('BackBaffled',true), ...
+                    'NumElements', nAnts, 'ElementSpacing', .5*lambda);
             end
 
         end
@@ -191,7 +249,9 @@ classdef gNB < networkElements.networkElementsWithPosition
             %        1         |        [1 1 1]
             %        2         |        [1 1 2]
             %        4         |        [1 2 2]
-            antConfig.bsAntSize      = obj.antSize;
+            antConfig.bsTxAntSize    = obj.txAntSize;
+            antConfig.bsRxComAntSize = obj.rxComAntSize;
+            antConfig.bsRxSenAntSize = obj.rxSenAntSize;
             antConfig.ueAntSizes     = 1 + (obj.numLayers.' > [4 2 1]);
             antConfig.antGain        = 25.5;        % Antenna gain (dBi)
             antConfig.noiseFigure    = 6;           % Noise figure (dB)
