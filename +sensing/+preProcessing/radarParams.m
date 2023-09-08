@@ -1,20 +1,20 @@
 function radarEstParams = radarParams(nSlots, carrier, waveInfo, bsParams, topoParams)
 % Calculate Radar SNR point and estimation resolutions.
-
+%
 % Author: D.S Xue, Key Laboratory of Universal Wireless Communications,
 % Ministry of Education, BUPT.
 
-    %% Radar Estimation Parameters
+    % Radar Estimation Parameters
     radarEstParams = struct(); 
 
-    %% Radar SNR Point Calculation  
+    %% SNR Point Calculation  
     tgtParams = bsParams.attachedTgts;
     nTargets  = numel(tgtParams);
-    nSc       = carrier.NSizeGrid*12;                % subcarriers
-    nSym      = nSlots*waveInfo.SymbolsPerSlot;      % OFDM symbols
-    uf        = 1;                                   % freq domain occupation spacing factor
-    ut        = 1;                                   % time domain occupation spacing factor  
-    nTxAnts   = prod(bsParams.antConfig.bsAntSize);  % base station antenna size
+    nSc       = carrier.NSizeGrid*12;                     % subcarriers
+    nSym      = nSlots*waveInfo.SymbolsPerSlot;           % OFDM symbols
+    uf        = 1;                                        % freq domain occupation spacing factor
+    ut        = 1;                                        % time domain occupation spacing factor  
+    nTxAnts   = prod(bsParams.antConfig.bsTxAntSize);     % base station transmission antenna size
 
     % OFDM Parameters
     c      = physconst('Lightspeed');
@@ -62,8 +62,7 @@ function radarEstParams = radarParams(nSlots, carrier, waveInfo, bsParams, topoP
     radarEstParams.rng      = r;            % target range
     radarEstParams.vel      = v;            % target velocity
     
-    %% Resolutions, Performance Limits and Antenna Array Steering Vector
-
+    %% Resolutions Calculation
     % Range Parameters
     nIFFT                = 2^nextpow2(nSc/uf);
     radarEstParams.nIFFT = nIFFT;                % 2^n closest to subcarrier numbers
@@ -76,53 +75,23 @@ function radarEstParams = radarParams(nSlots, carrier, waveInfo, bsParams, topoP
     radarEstParams.vRes = lambda/(2*(Tsri*ut)*nFFT); % velocity resolution
     radarEstParams.vMax = lambda/(2*(Tsri*ut));      % maxium unambiguous velocity
 
+    %% Antenna Array Steering Vector
     % Antenna array orientation parameters
-    txArray     = bsParams.txArray;
-    nRxAnts     = nTxAnts;                   % Rx and Tx share the same antenna array
-    ele         = topoParams.elevationTgts;  % elevation angle of target (theta),  [1 x nTargets]
-    azi         = topoParams.azimuthTgts;    % azimuth angle of target (phi), [1 x nTargets]
-    steeringVec = cell(1, nTargets);         % steering vector, [1 x nTargets]
-    
-    if isa(txArray, 'phased.NRRectangularPanelArray') % UPA model
+    txArray = bsParams.txArray;
+    rxArray = bsParams.rxSenArray;
+    ele     = topoParams.elevationTgts;  % elevation angle of target (theta),  [1 x nTargets]
+    azi     = topoParams.azimuthTgts;    % azimuth angle of target (phi), [1 x nTargets]
 
-        spacingX = txArray.Spacing(1);         % array X-axis element spacing
-        spacingY = txArray.Spacing(2);         % array Y-axis element spacing
-        nAntsX   = txArray.Size(1);            % array X-axis element number
-        nAntsY   = txArray.Size(2);            % array Y-axis element number
-        antAryX  = (0:1:nAntsX-1)*spacingX;    % array X-axis element indices, [1 x nRxAntsX]
-        antAryY  = ((0:1:nAntsY-1)*spacingY)'; % array Y-axis element indices, [nRxAntsY x 1]
+    txSteeringVector = sensing.preProcessing.getSteeringVector(txArray, ele, azi, lambda);
+    rxSteeringVector = sensing.preProcessing.getSteeringVector(rxArray, ele, azi, lambda);
 
-        % UPA steering vector, defined in the spheric coordinate system
-        aUPA = @(ph, th, m, n)exp(2j*pi*sind(th)*(m*cosd(ph) + n*sind(ph))/lambda);
-        
-        for t = 1:nTargets
-            upaSteeringVec = aUPA(azi(t), ele(t), antAryX, antAryY);
-            steeringVec{t} = reshape(upaSteeringVec, nRxAnts, 1);
-        end
-    
-    else  % ULA model
-
-        spacing = txArray.ElementSpacing;     % array element spacing
-        antAry  = ((0:1:nRxAnts-1)*spacing)'; % array element, [nRxAnts x 1]
-
-        % ULA steering vector
-        aULA = @(ph, m)exp(2j*pi*m*sind(ph)/lambda);
-
-        for t = 1:nTargets
-            ulaSteeringVec = aULA(azi(t), antAry);
-            steeringVec{t} = ulaSteeringVec;
-        end
-
-    end
-
-    steeringVec = cat(2, steeringVec{:}); % [nRxAnts x nTargets]
-
-    radarEstParams.antennaType              = txArray;  % antenna array type
-    radarEstParams.azimuthScanScale         = 120;      % azimuth scan scale, normally set to 120°, meaning [-60°, 60°]
-    radarEstParams.elevationScanScale       = 180;      % elevation scan scale, normally set to 180°, meaning [-90°, 90°]
-    radarEstParams.azimuthScanGranularity   = 1;        % azimuth scan granularity, in degrees
-    radarEstParams.elevationScanGranularity = 1;        % elevation scan granularity, in degrees
-    radarEstParams.RxSteeringVec            = steeringVec;
+    radarEstParams.antennaType              = rxArray;          % antenna array type
+    radarEstParams.azimuthScanScale         = 120;              % azimuth scan scale, normally set to 120°, meaning [-60°, 60°]
+    radarEstParams.elevationScanScale       = 180;              % elevation scan scale, normally set to 180°, meaning [-90°, 90°]
+    radarEstParams.azimuthScanGranularity   = 1;                % azimuth scan granularity, in degrees
+    radarEstParams.elevationScanGranularity = 1;                % elevation scan granularity, in degrees
+    radarEstParams.txSteeringVector         = txSteeringVector; % transmissiong steering vector
+    radarEstParams.rxSteeringVector         = rxSteeringVector; % reception steering vector
 
     %% Restore Targets' Real Position Configuration
     % CFAR detection zone
@@ -135,14 +104,12 @@ function radarEstParams = radarParams(nSlots, carrier, waveInfo, bsParams, topoP
 
     % Assignment
     for i = 1:nTargets
-
         radarEstParams.tgtRealPos(i).ID        = i;
         radarEstParams.tgtRealPos(i).Range     = r(i);
         radarEstParams.tgtRealPos(i).Velocity  = v(i);
         radarEstParams.tgtRealPos(i).Elevation = ele(i);
         radarEstParams.tgtRealPos(i).Azimuth   = azi(i);
         radarEstParams.tgtRealPos(i).snrdB     = snrdB(i);
-
     end
 
 end
