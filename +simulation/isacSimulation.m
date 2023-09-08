@@ -1,6 +1,6 @@
 function [gNBEstRMSEs, gNBComResults] = isacSimulation(simuParams)
 %% Single gNB-based ISAC Transceiver Simulation
-
+%
 % Author: D.S Xue, Key Laboratory of Universal Wireless Communications,
 % Ministry of Education, BUPT.
 
@@ -22,7 +22,7 @@ function [gNBEstRMSEs, gNBComResults] = isacSimulation(simuParams)
 
     % Antenna configurations
     antConfig   = gNB.antConfig;
-    bsAntSize   = antConfig.bsAntSize;
+    bsAntSize   = antConfig.bsTxAntSize;
     ueAntSizes  = antConfig.ueAntSizes;
     
     % Reset random generator for reproducibility
@@ -101,7 +101,7 @@ function [gNBEstRMSEs, gNBComResults] = isacSimulation(simuParams)
     % Sensing processing
     if gNB.senService
         % Radar active sensing
-        radarRxGrid = sensing.monoStaticSensing(radarTxWave, carrier, waveInfo, gNB, rdrEstParams, topoParams);
+        radarRxGrid = sensing.monoStaticSensing(radarTxWave, carrier, waveInfo, gNB, rdrEstParams);
         % Radar parameter estimation algorithm
         if strcmp(gNB.estAlgorithm, 'FFT')
             gNBEstResults = sensing.estimation.fft2D(rdrEstParams, cfar, radarRxGrid, radarTxGrid);
