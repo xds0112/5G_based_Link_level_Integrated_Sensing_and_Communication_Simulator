@@ -58,7 +58,9 @@ function radarEstParams = radarParams(nSlots, carrier, waveInfo, bsParams, topoP
     radarEstParams.N0       = N0;           % noise
     radarEstParams.lsFading = sqrt(Pr./Pt); % large-scale fading
     radarEstParams.snrdB    = snrdB;        % SNR points (dB) [1 x nTargets]
-    radarEstParams.Pfa      = bsParams.Pfa;
+    radarEstParams.Pfa      = bsParams.Pfa; % false alarm rate
+    radarEstParams.rng      = r;            % target range
+    radarEstParams.vel      = v;            % target velocity
     
     %% Resolutions, Performance Limits and Antenna Array Steering Vector
 
