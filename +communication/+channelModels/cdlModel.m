@@ -41,7 +41,7 @@ classdef cdlModel
             maximumDopplerShift = 5;
             models = communication.channelModels.multiUserChannels(obj.delayProfile, ...
                 obj.carrierFrequency, delaySpread, maximumDopplerShift, ...
-                obj.antConfig.bsAntSize, obj.antConfig.ueAntSizes, obj.topoParams);
+                obj.antConfig.bsTxAntSize, obj.antConfig.ueAntSizes, obj.topoParams);
 
         end
         
