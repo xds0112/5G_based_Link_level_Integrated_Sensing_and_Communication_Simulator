@@ -39,7 +39,7 @@ nTxAnts = prod(bsParams.antConfig.bsAntSize);
 % Radar mono-static detection and estimation
 rdrEstParams = sensing.preProcessing.radarParams(numSlots, carrier, waveInfo, bsParams, topoParams);
 cfar         = sensing.detection.cfarConfig(rdrEstParams);
-rdrRxGrid    = sensing.monoStaticSensing(rdrTxWave, carrier, waveInfo, bsParams, rdrEstParams, topoParams);
+rdrRxGrid    = sensing.monoStaticSensing(rdrTxWave, carrier, waveInfo, bsParams, rdrEstParams);
 estResults   = sensing.estimation.fft2D(rdrEstParams, cfar, rdrRxGrid, rdrTxGrid);
 
 % Plot topology
