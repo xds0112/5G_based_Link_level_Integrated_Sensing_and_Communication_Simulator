@@ -25,7 +25,7 @@ function rxWaveform = basicRadarChannel(txWaveform, radarEstParams)
     % Number of targets
     nTargets = numel(radarEstParams.rng);
 
-    %% Multi-Target Radar Propagation Channel
+    %% Multi-target Radar Propagation Channel
     % Send Tx signal
     sampleTimeTx = (0:Ts:Ts*(txWaveLength-1)).';
     phaseTx      = exp(2j*pi*fc*sampleTimeTx);          % carrier corresponding to Tx, [txWaveLength x nTxAnts]
