@@ -1,10 +1,10 @@
 function simuParams = scenarioTimeDivisionDuplex()
-    % Time Division Duplex (TDD) ISAC Scenario 
-    
-    % Scenario Generation.
-    
-    % Author: D.S.Xue, Key Laboratory of Universal Wireless Communications,
-    % Ministry of Education, BUPT.
+% Time Division Duplex (TDD) ISAC Scenario 
+%
+% Scenario Generation.
+%
+% Author: D.S.Xue, Key Laboratory of Universal Wireless Communications,
+% Ministry of Education, BUPT.
     
     %%
     rng('default')
@@ -23,7 +23,9 @@ function simuParams = scenarioTimeDivisionDuplex()
     bs.scs              = 60;                    % in kHz
     bs.tddPattern       = ["D" "D" "D" "S" "U"]; % TDD pattern
     bs.specialSlot      = [10 2 2];              % TDD special/flexible slot
-    bs.antSize          = [8 8 1];               % antenna panel
+    bs.txAntSize        = [8 8 1];               % transmission antenna panel
+    bs.rxComAntSize     = [8 4 1];               % reception antenna panel for communication
+    bs.rxSenAntSize     = [8 4 1];               % reception antenna panel for sensing
     bs.estAlgorithm     = 'FFT';                 % estimation algorithm
     bs.Pfa              = 1e-9;                  % false alarm rate
     bs.cfarEstZone      = [50 500; -20 20];      % [a b; c d], a to b m, c to d m/s
