@@ -1,10 +1,10 @@
 function simuParams = scenarioFullDownlink()
-    % Full Downlink Radar Sensing Scenario 
-    
-    % For link-level radar sensing simulation only
-    
-    % Author: D.S.Xue, Key Laboratory of Universal Wireless Communications,
-    % Ministry of Education, BUPT.
+% Full Downlink Radar Sensing Scenario 
+%
+% For link-level radar sensing simulation only
+%
+% Author: D.S.Xue, Key Laboratory of Universal Wireless Communications,
+% Ministry of Education, BUPT.
     
     %%
     rng('default')
