@@ -23,7 +23,9 @@ function simuParams = scenarioFullDownlink()
     bs.scs              = 60;               % in kHz
     bs.tddPattern       = "D";              % full downlink
     bs.specialSlot      = [14 0 0];         % full downlink symbols
-    bs.antSize          = [8 1 1];          % antenna panel
+    bs.txAntSize        = [8 8 1];          % transmission antenna panel
+    bs.rxComAntSize     = [8 4 1];          % reception antenna panel for communication
+    bs.rxSenAntSize     = [8 4 1];          % reception antenna panel for sensing
     bs.Pfa              = 1e-9;             % false alarm rate
     bs.cfarEstZone      = [50 500; -20 20]; % [a b; c d], a to b m, c to d m/s
     
