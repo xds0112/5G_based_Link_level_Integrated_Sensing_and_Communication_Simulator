@@ -80,14 +80,10 @@ function [gNBEstRMSEs, gNBComResults] = isacSimulation(simuParams)
 
         % Sensing symbols
         if gNB.senService 
-            % Determine the current slot type
-            [slotType, ~] = communication.determineSlotType(tddPattern, specialSlot, carrier);
-            if (slotType == "D")
-                % Symbols accumulation
-                radarTxGrid = cat(2, radarTxGrid, txDL.dlGrid);
-                % Wave accumulation
-                radarTxWave = cat(1, radarTxWave, txDL.dlWaveform);
-            end
+            % Symbols accumulation
+            radarTxGrid = cat(2, radarTxGrid, txDL.dlGrid);
+            % Wave accumulation
+            radarTxWave = cat(1, radarTxWave, txDL.dlWaveform);
         end
 
     end
