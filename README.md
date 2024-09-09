@@ -38,13 +38,12 @@
     Copyright (C) 2023 Beijing University of Posts and Telecommunications
     All rights reserved.
 
-    System-level ISAC Simulator
-    Author: Dongsheng Xue, et.al.
+    Link-level ISAC Simulator
+    Author: D. Xue, et.al.
 
 
 ## Contact
     li-yonggang@bupt.edu.cn (currently in charge)
-    xuedongsheng@bupt.edu.cn
 
 
 ## 3GPP references:
